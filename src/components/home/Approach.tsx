@@ -26,13 +26,13 @@ export function Approach() {
       className="bg-brand-bg-alt py-24 md:py-40"
     >
       <div className="mx-auto max-w-[1280px] px-6">
-        <div className="grid grid-cols-1 gap-14 lg:grid-cols-[2fr_3fr] lg:gap-24">
+        <div className="grid grid-cols-12 gap-x-6 gap-y-14 md:gap-y-0">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.15 }}
             transition={{ duration: 0.6, ease: EASE }}
-            className="lg:sticky lg:top-28 lg:self-start"
+            className="col-span-12 md:col-span-5 md:sticky md:top-32 md:self-start"
           >
             <p className="text-[12px] uppercase tracking-[0.1em] text-brand-ink-soft">
               Our approach
@@ -51,7 +51,9 @@ export function Approach() {
             </p>
           </motion.div>
 
-          <div className="divide-y divide-brand-line border-y border-brand-line">
+          {/* Right column — starts at col 7, spans 6. Col 6 is a natural
+              gutter. Hairlines live between items only (no outer border). */}
+          <div className="col-span-12 md:col-start-7 md:col-span-6 divide-y divide-brand-line">
             {BLOCKS.map((b, i) => (
               <motion.article
                 key={b.title}
@@ -59,7 +61,7 @@ export function Approach() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.15 }}
                 transition={{ duration: 0.6, delay: i * 0.08, ease: EASE }}
-                className="py-10 md:py-12"
+                className="py-8 first:pt-0 md:py-10"
               >
                 <h3
                   className="font-display text-[clamp(1.25rem,1.8vw,1.5rem)] leading-[1.3] tracking-[-0.015em] text-brand-ink"
