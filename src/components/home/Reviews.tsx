@@ -21,7 +21,7 @@ const REVIEWS = [
     name: "Marcus D.",
     hood: "Watergraafsmeer",
     quote:
-      "Sorted my monthly clean in under two minutes on the tram. If you're an expat in Amsterdam without ExpatCleaners yet, you're doing the wrong thing on a Sunday.",
+      "I book a monthly clean from the tram on the way to work. It's the one bit of adult admin I've actually solved since moving here.",
   },
 ] as const;
 
