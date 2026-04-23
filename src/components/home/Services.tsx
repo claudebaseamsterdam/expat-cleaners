@@ -16,21 +16,26 @@ type Row = {
   image: string;
 };
 
-// TODO: replace with licensed Stocksy/Unsplash+ assets per the briefs.
+// TODO: verify each asset and swap to licensed Stocksy / Unsplash+ in
+// production. Round 2 brief: the three images should read as a sequence
+// (wide → medium → tight), not three interchangeable interior photos —
+// different rooms, different crops, different intimacy levels.
 const ROWS: Row[] = [
   {
     id: "recurring",
     name: "Recurring cleaning",
     body: "Weekly or bi-weekly, same cleaner each time. The home stays even, the bar stays high.",
     priceLine: "From €36/hr on subscription",
+    // Wide / warm / lived-in — tidy kitchen or living room moment, domestic.
     image:
-      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1800&q=80&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1800&q=80&auto=format&fit=crop",
   },
   {
     id: "oneoff",
     name: "One-off cleaning",
     body: "For a single reset — before guests, after a party, when the week got away from you.",
     priceLine: "€44/hr · no commitment",
+    // Medium / mid-reset — a hand arranging a counter, morning light.
     image:
       "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1800&q=80&auto=format&fit=crop",
   },
@@ -39,8 +44,9 @@ const ROWS: Row[] = [
     name: "Deep clean",
     body: "Inside appliances, skirting boards, behind the things no one ever reaches. Move-in or move-out ready.",
     priceLine: "€44/hr · min. 3 hours",
+    // Tight / texture-led — bathroom tile or surface detail, no wide room.
     image:
-      "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=1800&q=80&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=1800&q=80&auto=format&fit=crop",
   },
 ];
 
