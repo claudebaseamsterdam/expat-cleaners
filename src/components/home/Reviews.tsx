@@ -29,15 +29,23 @@ export function Reviews() {
   return (
     <section id="reviews" className="bg-brand-bg py-24 md:py-40">
       <div className="mx-auto max-w-[840px] px-6">
-        <motion.p
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.15 }}
           transition={{ duration: 0.6, ease: EASE }}
-          className="text-center text-[12px] uppercase tracking-[0.1em] text-brand-ink-soft"
+          className="text-center"
         >
-          Reviews
-        </motion.p>
+          <p className="text-[12px] uppercase tracking-[0.1em] text-brand-ink-soft">
+            From clients
+          </p>
+          <h2
+            className="mt-6 font-display text-[clamp(2.25rem,4vw,3.75rem)] leading-[1.05] tracking-[-0.03em] text-brand-ink"
+            style={{ fontWeight: 420 }}
+          >
+            In their words.
+          </h2>
+        </motion.div>
 
         <div className="mt-16 divide-y divide-brand-line">
           {REVIEWS.map((r, i) => (
