@@ -21,6 +21,12 @@ type Props = {
   onWhatsApp: () => void;
   onCoupon: (code: string) => void;
   compact?: boolean;
+  /**
+   * When true, hide the CTA and coupon — use when the card is purely an
+   * estimate display (e.g. sticky sidebar next to a wizard whose own CTA
+   * lives elsewhere).
+   */
+  readOnly?: boolean;
 };
 
 export function SummaryCard({
@@ -33,6 +39,7 @@ export function SummaryCard({
   onWhatsApp,
   onCoupon,
   compact,
+  readOnly,
 }: Props) {
   const [couponOpen, setCouponOpen] = useState(!!state.couponCode);
   const {
@@ -141,6 +148,7 @@ export function SummaryCard({
         Final price confirmed on arrival. No payment until after clean.
       </p>
 
+      {!readOnly && (
       <div className="mt-4">
         {!couponOpen ? (
           <button
@@ -171,8 +179,9 @@ export function SummaryCard({
           </div>
         )}
       </div>
+      )}
 
-      {ready ? (
+      {!readOnly && (ready ? (
         <button
           type="button"
           onClick={onConfirm}
@@ -198,8 +207,9 @@ export function SummaryCard({
         >
           Complete the form to continue
         </button>
-      )}
+      ))}
 
+      {!readOnly && (
       <a
         href={waHref}
         onClick={onWhatsApp}
@@ -210,6 +220,7 @@ export function SummaryCard({
         Prefer WhatsApp? Message us instead
         <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-500 group-hover:rotate-45" />
       </a>
+      )}
     </aside>
   );
 }

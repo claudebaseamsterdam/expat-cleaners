@@ -1,42 +1,35 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useReducer,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { ArrowUpRight, MessageCircle } from "lucide-react";
-import { StepIndicator } from "@/components/booking/StepIndicator";
-import { StepDetails } from "@/components/booking/StepDetails";
-import { StepService } from "@/components/booking/StepService";
-import { StepSpecifics } from "@/components/booking/StepSpecifics";
-import { StepExtras } from "@/components/booking/StepExtras";
-import { StepFrequency } from "@/components/booking/StepFrequency";
-import { StepDateTime } from "@/components/booking/StepDateTime";
-import { StepNotes } from "@/components/booking/StepNotes";
+import { AnimatePresence, motion } from "framer-motion";
+import { WizardProgress } from "@/components/booking/WizardProgress";
+import { WizardNav } from "@/components/booking/WizardNav";
+import { Step1HomeService } from "@/components/booking/Step1HomeService";
+import { Step2Timing } from "@/components/booking/Step2Timing";
+import { Step3Review } from "@/components/booking/Step3Review";
 import { SummaryCard } from "@/components/booking/SummaryCard";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
-import { WHATSAPP_URL } from "@/lib/constants";
 import { whatsappLink } from "@/lib/whatsapp";
 import {
   buildBookingMessage,
   calcTotal,
   clearDraft,
   defaultBookingState,
-  isBookingReady,
   loadDraft,
   saveConfirmed,
   saveDraft,
-  validateDetails,
   type BookingState,
   type FrequencyId,
   type ServiceId,
 } from "@/lib/booking";
+import type {
+  BookingPayload,
+  BookingResponse,
+  OpsCheckResponse,
+} from "@/services/agents";
+
+// ---------- Reducer ----------
 
 type Action =
   | { type: "hydrate"; payload: BookingState }
@@ -91,29 +84,22 @@ function reducer(state: BookingState, action: Action): BookingState {
   }
 }
 
-const sectionReveal = {
-  initial: { opacity: 0, y: 24 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: "-80px" },
-  transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] as const },
-};
+const POSTCODE_RE = /^\s*\d{4}\s?[A-Z]{2}\s*$/i;
+const EASE = [0.16, 1, 0.3, 1] as const;
+
+type WizardStep = 1 | 2 | 3;
+
+// ---------- Page ----------
 
 export default function BookPage() {
   const router = useRouter();
   const [state, dispatch] = useReducer(reducer, defaultBookingState);
   const [hydrated, setHydrated] = useState(false);
+  const [step, setStep] = useState<WizardStep>(1);
+  const [opsCheck, setOpsCheck] = useState<OpsCheckResponse | null>(null);
+  const [opsCheckLoading, setOpsCheckLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [activeStep, setActiveStep] = useState(1);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  const refs = {
-    1: useRef<HTMLDivElement>(null),
-    2: useRef<HTMLDivElement>(null),
-    3: useRef<HTMLDivElement>(null),
-    4: useRef<HTMLDivElement>(null),
-    5: useRef<HTMLDivElement>(null),
-    6: useRef<HTMLDivElement>(null),
-  };
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     const draft = loadDraft();
@@ -126,382 +112,284 @@ export default function BookPage() {
   }, [state, hydrated]);
 
   const price = useMemo(() => calcTotal(state), [state]);
-  const ready = isBookingReady(state);
-  const v = validateDetails(state.details);
 
-  useEffect(() => {
-    const observers: IntersectionObserver[] = [];
-    (Object.entries(refs) as [string, React.RefObject<HTMLDivElement | null>][]).forEach(
-      ([k, r]) => {
-        if (!r.current) return;
-        const id = Number(k);
-        const obs = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((e) => {
-              if (e.isIntersecting) setActiveStep(id);
-            });
-          },
-          { rootMargin: "-40% 0px -40% 0px" },
-        );
-        obs.observe(r.current);
-        observers.push(obs);
-      },
-    );
-    return () => observers.forEach((o) => o.disconnect());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const step1Valid =
+    POSTCODE_RE.test(state.details.postalCode) &&
+    !!state.serviceId &&
+    !!state.frequencyId;
 
-  const scrollTo = useCallback((id: number) => {
-    const node = refs[id as 1 | 2 | 3 | 4 | 5 | 6]?.current;
-    if (!node) return;
-    const top = node.getBoundingClientRect().top + window.scrollY - 96;
-    window.scrollTo({ top, behavior: "smooth" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const step2Valid =
+    !!state.preferredDate &&
+    (!!state.preferredTime || state.waitingListJoined);
 
+  // ---------- Handlers ----------
+
+  const onPostcode = useCallback(
+    (postcode: string) =>
+      dispatch({ type: "details", patch: { postalCode: postcode } }),
+    [],
+  );
   const onService = useCallback(
-    (id: ServiceId) => {
-      dispatch({ type: "service", id });
-      setTimeout(() => scrollTo(3), 400);
-    },
-    [scrollTo],
+    (id: ServiceId) => dispatch({ type: "service", id }),
+    [],
+  );
+  const onHome = useCallback(
+    (patch: Partial<BookingState["home"]>) => dispatch({ type: "home", patch }),
+    [],
+  );
+  const onExtra = useCallback(
+    (id: string, qty: number) => dispatch({ type: "extra", id, qty }),
+    [],
   );
   const onFrequency = useCallback(
-    (id: FrequencyId) => {
-      dispatch({ type: "frequency", id });
-      setTimeout(() => scrollTo(6), 400);
-    },
-    [scrollTo],
+    (id: FrequencyId) => dispatch({ type: "frequency", id }),
+    [],
+  );
+  const onDate = useCallback(
+    (date: string) => dispatch({ type: "date", date }),
+    [],
+  );
+  const onTime = useCallback(
+    (time: string) => dispatch({ type: "time", time }),
+    [],
+  );
+  const onWaitingList = useCallback(
+    (patch: { joined?: boolean; note?: string }) =>
+      dispatch({ type: "waitingList", patch }),
+    [],
+  );
+  const onNotes = useCallback(
+    (field: "cleaner" | "office", value: string) =>
+      dispatch({ type: "notes", field, value }),
+    [],
+  );
+  const onContact = useCallback(
+    (patch: Partial<BookingState["details"]>) =>
+      dispatch({ type: "details", patch }),
+    [],
   );
 
-  const waHref = useMemo(
-    () => whatsappLink(buildBookingMessage(state)),
-    [state],
-  );
-
-  const handleConfirm = useCallback(async () => {
-    if (!ready || submitting) return;
-    setSubmitting(true);
+  // Step 2 → 3 transition: run ops-check before rendering review
+  const goToReview = useCallback(async () => {
+    setOpsCheckLoading(true);
+    setOpsCheck(null);
+    setStep(3);
     try {
-      const res = await fetch("/api/book", {
+      const res = await fetch("/api/ops-check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(state),
+        body: JSON.stringify({
+          postcode: state.details.postalCode,
+          preferred_date: state.preferredDate,
+          preferred_time: state.preferredTime,
+          hours_estimate: price.hours,
+        }),
       });
-      const data: { success: boolean; ref?: string } = await res.json();
-      if (!res.ok || !data.success || !data.ref) {
-        throw new Error("Submit failed");
-      }
-      saveConfirmed({
-        ref: data.ref,
-        state,
-        at: new Date().toISOString(),
-      });
-      clearDraft();
-      router.push(`/book/confirmed?ref=${encodeURIComponent(data.ref)}`);
+      const data = (await res.json()) as OpsCheckResponse;
+      setOpsCheck(data);
     } catch {
-      // Fallback: hand off to WhatsApp
-      window.open(waHref, "_blank", "noopener,noreferrer");
-      setSubmitting(false);
+      // Fail-soft: assume feasible so the user can still continue via WhatsApp.
+      setOpsCheck({
+        feasible: true,
+        reason:
+          "Availability check unavailable — we'll confirm on WhatsApp.",
+      });
+    } finally {
+      setOpsCheckLoading(false);
     }
-  }, [ready, submitting, state, router, waHref]);
+  }, [
+    state.details.postalCode,
+    state.preferredDate,
+    state.preferredTime,
+    price.hours,
+  ]);
 
-  const progressSteps = [
-    {
-      id: 1,
-      label: "Your Details",
-      complete: v.allRequired,
-    },
-    { id: 2, label: "Service", complete: !!state.serviceId },
-    { id: 3, label: "Specifics", complete: !!state.serviceId },
-    {
-      id: 4,
-      label: "Extras",
-      complete: Object.values(state.extras).some((q) => q > 0),
-    },
-    { id: 5, label: "Frequency", complete: !!state.frequencyId },
-    {
-      id: 6,
-      label: "Date & Time",
-      complete:
-        !!state.preferredDate &&
-        (!!state.preferredTime || state.waitingListJoined),
-    },
-  ];
+  const useAlternative = useCallback(() => {
+    if (!opsCheck?.alternative) return;
+    dispatch({ type: "date", date: opsCheck.alternative.date });
+    dispatch({ type: "time", time: opsCheck.alternative.time });
+    setOpsCheck({ feasible: true });
+  }, [opsCheck]);
+
+  const goNext = useCallback(() => {
+    if (step === 1 && step1Valid) setStep(2);
+    else if (step === 2 && step2Valid) void goToReview();
+  }, [step, step1Valid, step2Valid, goToReview]);
+
+  const goBack = useCallback(() => {
+    setStep((s) => (s > 1 ? ((s - 1) as WizardStep) : s));
+    setOpsCheck(null);
+    setOpsCheckLoading(false);
+    setSubmitError(null);
+  }, []);
+
+  // Step 3 submit → call /api/booking, open WhatsApp, navigate to /thank-you
+  const handleSubmit = useCallback(async () => {
+    setSubmitting(true);
+    setSubmitError(null);
+
+    const payload: BookingPayload = {
+      name: state.details.name,
+      phone: state.details.phone,
+      postcode: state.details.postalCode,
+      home_size: `${state.home.beds}b/${state.home.baths}ba · ${state.home.type}${
+        state.home.size ? ` · ${state.home.size}m²` : ""
+      }`,
+      service_type: state.frequencyId === "once" ? "one-time" : "recurring",
+      frequency: state.frequencyId,
+      hours_estimate: price.hours,
+      addons: Object.entries(state.extras)
+        .filter(([, qty]) => qty > 0)
+        .map(([id]) => id),
+      preferred_date: state.preferredDate,
+      preferred_time: state.preferredTime,
+      notes: state.notesCleaner,
+      access_instructions: state.notesOffice,
+    };
+
+    let ref: string | undefined;
+    let waMessage = buildBookingMessage(state);
+
+    try {
+      const res = await fetch("/api/booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = (await res.json()) as BookingResponse;
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Booking submission failed");
+      }
+      ref = data.ref;
+      if (data.whatsappMessage) waMessage = data.whatsappMessage;
+    } catch (err) {
+      // Surface the error briefly but still hand off to WhatsApp so the user
+      // can finish the booking manually.
+      setSubmitError(
+        err instanceof Error
+          ? `${err.message} — opening WhatsApp anyway.`
+          : "Something went wrong — opening WhatsApp anyway.",
+      );
+    }
+
+    if (ref) {
+      saveConfirmed({ ref, state, at: new Date().toISOString() });
+    }
+    clearDraft();
+
+    // Open WhatsApp in a new tab
+    window.open(whatsappLink(waMessage), "_blank", "noopener,noreferrer");
+
+    // Navigate to thank-you
+    const query = ref ? `?ref=${encodeURIComponent(ref)}` : "";
+    router.push(`/thank-you${query}`);
+  }, [state, price.hours, router]);
 
   return (
     <div className="min-h-screen bg-brand-cream text-brand-ink">
-      <div className="mx-auto max-w-6xl px-4 pt-12 pb-6 md:pt-20">
-        <p className="text-xs uppercase tracking-[0.22em] text-brand-graphite">
-          Book a clean
-        </p>
-        <h1 className="mt-3 font-display text-[clamp(40px,7vw,68px)] leading-[1.02] tracking-tight text-brand-ink">
-          A clean home, three minutes from here.
-        </h1>
-        <p className="mt-4 max-w-xl text-base text-brand-graphite md:text-lg">
-          Tell us about your place, pick a time, confirm. We&apos;ll reply on
-          WhatsApp within 15 minutes.
-        </p>
-      </div>
-
-      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-4 pb-40 lg:grid-cols-[220px_1fr_380px] lg:gap-12 lg:pb-16">
-        <div className="hidden lg:block">
-          <div className="sticky top-24">
-            <StepIndicator
-              steps={progressSteps}
-              active={activeStep}
-              onJump={scrollTo}
-            />
-            <a
-              href={WHATSAPP_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-8 inline-flex items-center gap-2 text-sm text-brand-graphite transition-colors hover:text-brand-ink"
-            >
-              <MessageCircle className="h-4 w-4 text-brand-sage" />
-              Rather just chat?
-            </a>
-          </div>
+      <div className="mx-auto max-w-6xl px-4 pt-12 pb-32 md:pt-20 lg:pb-20">
+        <div className="mb-8">
+          <p className="text-xs uppercase tracking-[0.22em] text-brand-graphite">
+            Book a clean
+          </p>
+          <h1 className="mt-3 font-display text-[clamp(36px,6vw,56px)] leading-[1.02] tracking-tight">
+            Three steps. Then WhatsApp.
+          </h1>
+          <p className="mt-4 max-w-xl text-base text-brand-graphite">
+            Tell us about your home, pick a time, confirm. A human will reply
+            on WhatsApp within 15 minutes.
+          </p>
         </div>
 
-        <div className="space-y-14 md:space-y-20">
-          <StepSection
-            sectionRef={refs[1]}
-            number={1}
-            title="Your details"
-            kicker="Who are we cleaning for"
-          >
-            <StepDetails
-              state={state}
-              onChange={(patch) => dispatch({ type: "details", patch })}
-            />
-          </StepSection>
-
-          <StepSection
-            sectionRef={refs[2]}
-            number={2}
-            title="Choose your service"
-            kicker="Pick what fits today"
-          >
-            <StepService state={state} onSelect={onService} />
-          </StepSection>
-
-          <StepSection
-            sectionRef={refs[3]}
-            number={3}
-            title="Home specifics"
-            kicker="Helps us estimate hours"
-          >
-            <StepSpecifics
-              state={state}
-              onChange={(patch) => dispatch({ type: "home", patch })}
-            />
-          </StepSection>
-
-          <StepSection
-            sectionRef={refs[4]}
-            number={4}
-            title="Extras"
-            kicker="Supplies & add-ons"
-          >
-            <StepExtras
-              state={state}
-              onExtra={(id, qty) => dispatch({ type: "extra", id, qty })}
-            />
-          </StepSection>
-
-          <StepSection
-            sectionRef={refs[5]}
-            number={5}
-            title="Frequency"
-            kicker="Commit and save"
-          >
-            <StepFrequency state={state} onSelect={onFrequency} />
-          </StepSection>
-
-          <StepSection
-            sectionRef={refs[6]}
-            number={6}
-            title="Date & time"
-            kicker="When works for you"
-          >
-            <StepDateTime
-              state={state}
-              onDate={(date) => dispatch({ type: "date", date })}
-              onTime={(time) => dispatch({ type: "time", time })}
-              onWaitingList={(patch) =>
-                dispatch({ type: "waitingList", patch })
-              }
-            />
-            <StepNotes
-              state={state}
-              onNotes={(field, value) =>
-                dispatch({ type: "notes", field, value })
-              }
-              onConsent={(value) => dispatch({ type: "consent", value })}
-            />
-          </StepSection>
-
-          <div className="pt-2 text-center">
-            <a
-              href={WHATSAPP_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-sm text-brand-graphite transition-colors hover:text-brand-ink"
-            >
-              <MessageCircle className="h-4 w-4 text-brand-sage" />
-              Rather just chat? WhatsApp us
-              <ArrowUpRight className="h-3.5 w-3.5" />
-            </a>
-          </div>
+        <div className="mb-8">
+          <WizardProgress current={step} />
         </div>
 
-        <div className="hidden lg:block">
-          <div className="sticky top-24">
-            <SummaryCard
-              price={price}
-              state={state}
-              ready={ready}
-              submitting={submitting}
-              waHref={waHref}
-              onConfirm={handleConfirm}
-              onWhatsApp={() => saveDraft(state)}
-              onCoupon={(code) => dispatch({ type: "coupon", code })}
-            />
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_360px] lg:gap-12">
+          <div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={step}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.35, ease: EASE }}
+              >
+                {step === 1 && (
+                  <Step1HomeService
+                    state={state}
+                    onService={onService}
+                    onHome={onHome}
+                    onExtra={onExtra}
+                    onFrequency={onFrequency}
+                    onPostcode={onPostcode}
+                  />
+                )}
+                {step === 2 && (
+                  <Step2Timing
+                    state={state}
+                    onDate={onDate}
+                    onTime={onTime}
+                    onWaitingList={onWaitingList}
+                    onNotes={onNotes}
+                  />
+                )}
+                {step === 3 && (
+                  <Step3Review
+                    state={state}
+                    price={price}
+                    opsCheck={opsCheck}
+                    opsCheckLoading={opsCheckLoading}
+                    onContact={onContact}
+                    onUseAlternative={useAlternative}
+                    onSubmit={handleSubmit}
+                    submitting={submitting}
+                    submitError={submitError}
+                  />
+                )}
+              </motion.div>
+            </AnimatePresence>
+
+            {step < 3 ? (
+              <WizardNav
+                canBack={step > 1}
+                canNext={step === 1 ? step1Valid : step2Valid}
+                onBack={goBack}
+                onNext={goNext}
+                loading={step === 2 && opsCheckLoading}
+                nextLabel={step === 2 ? "Review" : "Next"}
+              />
+            ) : (
+              <div className="mt-8">
+                <button
+                  type="button"
+                  onClick={goBack}
+                  className="inline-flex h-11 items-center gap-2 text-sm text-brand-graphite hover:text-brand-ink"
+                >
+                  ← Back to timing
+                </button>
+              </div>
+            )}
           </div>
+
+          <aside className="hidden lg:block">
+            <div className="sticky top-24">
+              <SummaryCard
+                price={price}
+                state={state}
+                ready={false}
+                submitting={false}
+                waHref={whatsappLink(buildBookingMessage(state))}
+                onConfirm={() => {}}
+                onWhatsApp={() => {}}
+                onCoupon={(code) => dispatch({ type: "coupon", code })}
+                readOnly
+              />
+            </div>
+          </aside>
         </div>
       </div>
-
-      <MobileSummaryBar
-        price={price}
-        state={state}
-        ready={ready}
-        submitting={submitting}
-        waHref={waHref}
-        onConfirm={handleConfirm}
-        onWhatsApp={() => saveDraft(state)}
-        onCoupon={(code) => dispatch({ type: "coupon", code })}
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
-      />
-
-      <WhatsAppFloat variant="booking" hidden={drawerOpen} />
+      <WhatsAppFloat variant="booking" />
     </div>
-  );
-}
-
-function StepSection({
-  sectionRef,
-  number,
-  title,
-  kicker,
-  children,
-}: {
-  sectionRef: React.RefObject<HTMLDivElement | null>;
-  number: number;
-  title: string;
-  kicker: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <motion.section
-      ref={sectionRef}
-      {...sectionReveal}
-      className="scroll-mt-24"
-    >
-      <div className="mb-6">
-        <div className="text-xs uppercase tracking-[0.22em] text-brand-sage">
-          {String(number).padStart(2, "0")} · {kicker}
-        </div>
-        <h2 className="mt-2 font-display text-3xl tracking-tight text-brand-ink md:text-4xl">
-          {title}
-        </h2>
-      </div>
-      {children}
-    </motion.section>
-  );
-}
-
-function MobileSummaryBar(props: {
-  price: ReturnType<typeof calcTotal>;
-  state: BookingState;
-  ready: boolean;
-  submitting: boolean;
-  waHref: string;
-  onConfirm: () => void;
-  onWhatsApp: () => void;
-  onCoupon: (code: string) => void;
-  open: boolean;
-  onOpenChange: (next: boolean) => void;
-}) {
-  const { open, onOpenChange, ...summaryProps } = props;
-
-  return (
-    <>
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-brand-hairline bg-brand-cream/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-          <button
-            type="button"
-            onClick={() => onOpenChange(true)}
-            className="flex flex-col items-start"
-          >
-            <span className="text-xs text-brand-graphite">
-              Estimated total
-            </span>
-            <motion.span
-              key={props.price.subtotal}
-              initial={{ scale: 1.06 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="font-display text-xl tabular-nums text-brand-ink"
-            >
-              {props.price.service
-                ? `€${Math.round(props.price.subtotal)}`
-                : "—"}
-            </motion.span>
-          </button>
-
-          {props.ready ? (
-            <button
-              type="button"
-              onClick={props.onConfirm}
-              disabled={props.submitting}
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-brand-terracotta px-5 text-sm font-medium text-white shadow-[0_6px_20px_-10px_rgba(232,92,58,0.6)] disabled:opacity-70"
-            >
-              {props.submitting ? "Confirming…" : "Confirm booking"}
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => onOpenChange(true)}
-              className="inline-flex h-12 items-center justify-center rounded-full bg-brand-ink px-5 text-sm font-medium text-brand-cream"
-            >
-              Review & book
-            </button>
-          )}
-        </div>
-      </div>
-
-      {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={() => onOpenChange(false)}
-          className="fixed inset-0 z-[60] bg-brand-ink/40 lg:hidden"
-        >
-          <motion.div
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            transition={{ type: "spring", damping: 30, stiffness: 260 }}
-            onClick={(e) => e.stopPropagation()}
-            className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-3xl bg-brand-cream p-4 pb-[calc(env(safe-area-inset-bottom)+2rem)]"
-          >
-            <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-brand-hairline" />
-            <SummaryCard compact {...summaryProps} />
-          </motion.div>
-        </motion.div>
-      )}
-    </>
   );
 }

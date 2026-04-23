@@ -1,0 +1,32 @@
+# Secrets and local config
+.env
+.env.local
+.skill_cache.json
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OS
+.DS_Store
+
+# Logs — keep the folder, ignore contents
+logs/*
+!logs/.gitkeep
+
+# Runtime inputs (user's real data) — keep templates visible
+data/input/week.csv
+data/input/spend.csv
+
+# Generated reports
+data/output/*.md
+
+# Built skill zip
+expatcleaners-finance.zip

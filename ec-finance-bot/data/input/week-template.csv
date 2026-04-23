@@ -1,0 +1,6 @@
+date,booking_type,hours_billed,revenue_eur,cleaner_hours_paid,addons_eur,cleaner_id,postcode
+2026-04-20,recurring,3,108,3.5,0,CL001,1011
+2026-04-21,oneoff,4,176,4.5,25,CL002,1017
+2026-04-22,recurring,2,72,2.5,20,CL001,1073
+2026-04-23,oneoff,3,132,3.5,0,CL002,1013
+2026-04-24,recurring,4,144,4.5,30,CL001,1011
