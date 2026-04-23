@@ -6,11 +6,13 @@ import { motion } from "framer-motion";
 
 const EASE = [0.33, 1, 0.68, 1] as const;
 
-// TODO: replace with licensed Stocksy/Unsplash+ asset — brief calls for a
-// calm Amsterdam interior, late morning light, empty of people, one plant,
-// parquet floor visible, minimal styling, warm but not staged.
+// TODO: verify this asset and swap to a licensed Stocksy/Unsplash+
+// equivalent in production. Brief (round 2): common-area shot — living
+// room, kitchen, or dining — with morning light and European cues (tall
+// ceilings, visible window, parquet). Not a bedroom, not a hotel-lobby
+// interior, no cleaning products/gloves/people visible.
 const HERO_IMG =
-  "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=2200&q=85&auto=format&fit=crop";
+  "https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=2200&q=85&auto=format&fit=crop";
 
 export function Hero() {
   return (
@@ -25,8 +27,18 @@ export function Hero() {
         className="object-cover"
         placeholder="empty"
       />
-      {/* Bottom gradient so copy in ink / ink-soft reads over the image. */}
+      {/* Bottom gradient — fades the image into bg for copy legibility. */}
       <div className="absolute inset-0 bg-gradient-to-t from-brand-bg via-brand-bg/70 to-transparent" />
+      {/* Left-third gradient — protects copy when the image has a bright
+          area behind the headline region. 25% darkening → transparent at 50%. */}
+      <div
+        aria-hidden
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(90deg, rgba(0,0,0,0.25) 0%, transparent 50%)",
+        }}
+      />
 
       <div className="absolute inset-0 flex items-end">
         <div className="mx-auto w-full max-w-[1280px] px-6 pb-16 md:pb-24">
