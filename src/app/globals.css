@@ -243,6 +243,31 @@
     transform: scaleX(1);
   }
 
+  /* Muted variant — no base underline, animates in on hover + colour
+     transitions via Tailwind's hover:text-* utilities. Used when the
+     link is visually secondary (e.g. the Book-online link next to the
+     primary WhatsApp link in the final CTA). */
+  .editorial-link-muted {
+    position: relative;
+    display: inline-block;
+    transition: color 300ms cubic-bezier(0.33, 1, 0.68, 1);
+  }
+  .editorial-link-muted::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    height: 1px;
+    width: 100%;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 300ms cubic-bezier(0.33, 1, 0.68, 1);
+  }
+  .editorial-link-muted:hover::after {
+    transform: scaleX(1);
+  }
+
   /* Primary CTA button — ink on bg, sharp corners, hover fills from bottom
      with the accent green. Used sparingly. */
   .ink-button {
