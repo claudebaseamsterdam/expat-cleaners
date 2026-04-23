@@ -10,8 +10,9 @@ type Props = {
 };
 
 /**
- * Quiet WhatsApp float — appears after 600px of scroll, uses the brand
- * accent green (not the WhatsApp-product green), and does not pulse.
+ * Quiet WhatsApp float — appears after 600px of scroll, uses brand ink
+ * (primary CTA colour). The brand terracotta is reserved for accents and
+ * is explicitly not allowed as a button fill.
  */
 export default function WhatsAppFloat({
   variant = "default",
@@ -40,7 +41,7 @@ export default function WhatsAppFloat({
       rel="noopener noreferrer"
       aria-label="Chat with us on WhatsApp"
       className={cn(
-        "fixed right-5 z-40 grid h-12 w-12 place-items-center rounded-full bg-brand-accent text-brand-bg shadow-[0_6px_18px_-6px_rgba(46,74,59,0.35)] transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_10px_24px_-8px_rgba(46,74,59,0.45)]",
+        "fixed right-5 z-40 grid h-12 w-12 place-items-center rounded-full bg-brand-ink text-brand-bg shadow-[0_6px_18px_-6px_rgba(26,26,26,0.35)] transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_10px_24px_-8px_rgba(26,26,26,0.45)]",
         bottomClass,
         shown
           ? "translate-y-0 opacity-100"

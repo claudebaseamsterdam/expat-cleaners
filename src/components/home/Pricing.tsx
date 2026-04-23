@@ -22,7 +22,7 @@ export function Pricing() {
           transition={{ duration: 0.6, ease: EASE }}
           className="max-w-[640px]"
         >
-          <p className="text-[12px] uppercase tracking-[0.1em] text-brand-ink-soft">
+          <p className="text-[12px] uppercase tracking-[0.1em] text-brand-terracotta">
             Pricing
           </p>
           <h2
@@ -65,7 +65,7 @@ export function Pricing() {
                 href="/book"
                 className="editorial-link justify-self-end text-[17px] text-brand-ink"
               >
-                Book →
+                Book <span className="text-brand-terracotta">→</span>
               </Link>
             </div>
           ))}

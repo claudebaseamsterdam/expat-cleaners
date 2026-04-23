@@ -39,7 +39,7 @@ export function Nav() {
       <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-6 md:h-20">
         <Link
           href="/"
-          className="text-[15px] lowercase tracking-[0.02em] text-brand-ink"
+          className="text-[15px] lowercase tracking-[0.02em] text-brand-ink transition-colors duration-200 hover:text-brand-terracotta"
           style={{ fontWeight: 420 }}
         >
           expatcleaners

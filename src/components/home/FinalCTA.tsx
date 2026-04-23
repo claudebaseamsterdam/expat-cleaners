@@ -26,24 +26,26 @@ export function FinalCTA() {
           Two minutes on WhatsApp, or the booking form if you prefer.
         </p>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3 text-[17px]">
-          {/* Primary: ink with always-visible underline — strongest
-              conversion path carries visual weight via state, not size. */}
+          {/* Primary — ink text, always-visible 1.5px terracotta underline
+              at 6px offset. Hover transitions decoration to terracotta-
+              deep. Hierarchy carried by colour + state, not size. */}
           <a
             href={WHATSAPP_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-brand-ink underline decoration-1 underline-offset-4"
+            className="text-brand-ink underline decoration-[1.5px] decoration-brand-terracotta underline-offset-[6px] transition-colors duration-200 hover:decoration-brand-terracotta-deep"
           >
             WhatsApp us
           </a>
-          <span aria-hidden className="text-brand-ink-soft">
+          <span aria-hidden className="mx-1 text-brand-ink-soft">
             —
           </span>
-          {/* Secondary: ink-soft, no underline until hover; colour
-              transitions to ink alongside the underline reveal. */}
+          {/* Secondary — ink-soft, no underline at rest. Hover reveals a
+              1px terracotta underline at 4px offset and shifts the text
+              to ink. */}
           <Link
             href="/book"
-            className="editorial-link-muted text-brand-ink-soft hover:text-brand-ink"
+            className="text-brand-ink-soft transition-colors duration-200 hover:text-brand-ink hover:underline hover:decoration-1 hover:decoration-brand-terracotta hover:underline-offset-4"
           >
             Book online
           </Link>

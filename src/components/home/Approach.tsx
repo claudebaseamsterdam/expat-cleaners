@@ -34,7 +34,7 @@ export function Approach() {
             transition={{ duration: 0.6, ease: EASE }}
             className="col-span-12 md:col-span-5 md:sticky md:top-32 md:self-start"
           >
-            <p className="text-[12px] uppercase tracking-[0.1em] text-brand-ink-soft">
+            <p className="text-[12px] uppercase tracking-[0.1em] text-brand-terracotta">
               Our approach
             </p>
             <h2

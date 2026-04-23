@@ -17,7 +17,7 @@ export function Footer() {
           <div className="col-span-2 md:col-span-1">
             <Link
               href="/"
-              className="text-[15px] lowercase tracking-[0.02em] text-brand-ink"
+              className="text-[15px] lowercase tracking-[0.02em] text-brand-ink transition-colors duration-200 hover:text-brand-terracotta"
               style={{ fontWeight: 420 }}
             >
               expatcleaners
@@ -90,14 +90,14 @@ function FooterColumn({
                   href={l.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[14px] text-brand-ink/90 transition-colors hover:text-brand-accent"
+                  className="text-[14px] text-brand-ink/90 transition-colors hover:text-brand-terracotta"
                 >
                   {l.label}
                 </a>
               ) : (
                 <Link
                   href={l.href}
-                  className="text-[14px] text-brand-ink/90 transition-colors hover:text-brand-accent"
+                  className="text-[14px] text-brand-ink/90 transition-colors hover:text-brand-terracotta"
                 >
                   {l.label}
                 </Link>

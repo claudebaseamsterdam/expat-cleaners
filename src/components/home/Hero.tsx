@@ -48,7 +48,7 @@ export function Hero() {
             transition={{ duration: 0.8, ease: EASE }}
             className="max-w-[640px]"
           >
-            <p className="text-[12px] uppercase tracking-[0.1em] text-brand-ink-soft">
+            <p className="text-[12px] uppercase tracking-[0.1em] text-brand-terracotta">
               Amsterdam · Since 2026
             </p>
             <h1
@@ -61,11 +61,15 @@ export function Hero() {
               Organic products. English-speaking cleaners. Booked over
               WhatsApp, the way it should be.
             </p>
+            {/* Hero CTA — base underline in ink, hover transitions to a
+                1.5px terracotta-deep underline. Arrow glyph stays
+                terracotta at all times. */}
             <Link
               href="/book"
-              className="editorial-link mt-10 inline-block text-[17px] text-brand-ink"
+              className="mt-10 inline-block text-[17px] text-brand-ink underline decoration-1 decoration-brand-ink underline-offset-4 transition-[text-decoration-color,text-decoration-thickness] duration-200 hover:decoration-[1.5px] hover:decoration-brand-terracotta-deep"
             >
-              Book a clean →
+              Book a clean{" "}
+              <span className="text-brand-terracotta">→</span>
             </Link>
           </motion.div>
         </div>

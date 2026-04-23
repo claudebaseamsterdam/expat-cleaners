@@ -26,7 +26,8 @@ export function Proof() {
             Sarah M. — Oud-West ·{" "}
             {/* TODO: swap # for the real Google Business review URL */}
             <a href="#" className="editorial-link text-brand-ink">
-              Read on Google →
+              Read on Google{" "}
+              <span className="text-brand-terracotta">→</span>
             </a>
           </footer>
         </motion.blockquote>

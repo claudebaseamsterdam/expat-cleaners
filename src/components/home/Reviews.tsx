@@ -36,7 +36,7 @@ export function Reviews() {
           transition={{ duration: 0.6, ease: EASE }}
           className="text-center"
         >
-          <p className="text-[12px] uppercase tracking-[0.1em] text-brand-ink-soft">
+          <p className="text-[12px] uppercase tracking-[0.1em] text-brand-terracotta">
             From clients
           </p>
           <h2

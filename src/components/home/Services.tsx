@@ -65,7 +65,7 @@ export function Services() {
           transition={{ duration: 0.6, ease: EASE }}
           className="mb-16 md:mb-24 max-w-[900px]"
         >
-          <p className="text-[12px] uppercase tracking-[0.1em] text-brand-ink-soft">
+          <p className="text-[12px] uppercase tracking-[0.1em] text-brand-terracotta">
             Services
           </p>
           <h2
@@ -118,7 +118,7 @@ export function Services() {
                   href="/book"
                   className="editorial-link mt-6 inline-block text-[17px] text-brand-ink"
                 >
-                  Book →
+                  Book <span className="text-brand-terracotta">→</span>
                 </Link>
               </div>
             </motion.article>
@@ -140,7 +140,8 @@ export function Services() {
               rel="noopener noreferrer"
               className="editorial-link text-brand-ink"
             >
-              Request a quote →
+              Request a quote{" "}
+              <span className="text-brand-terracotta">→</span>
             </a>
           </p>
         </motion.div>
