@@ -1,33 +1,29 @@
 import type { Metadata } from "next";
-import { Instrument_Sans, Fraunces } from "next/font/google";
+import { Inter_Tight } from "next/font/google";
 import "./globals.css";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
-import { UrgencyBar } from "@/components/UrgencyBar";
 
-const instrumentSans = Instrument_Sans({
+// Neo-grotesk display + body from one family.
+// TODO: swap to licensed ABC Diatype / Söhne when available — this is a
+// drop-in import change; the rest of the stylesheet is variable-weight aware.
+const interTight = Inter_Tight({
   variable: "--font-sans",
   subsets: ["latin"],
   display: "swap",
-});
-
-const fraunces = Fraunces({
-  variable: "--font-display",
-  subsets: ["latin"],
-  display: "swap",
-  axes: ["opsz", "SOFT"],
+  preload: true,
 });
 
 export const metadata: Metadata = {
-  title: "ExpatCleaners — Premium cleaning for expats in Amsterdam",
+  title: "ExpatCleaners — A quieter kind of clean.",
   description:
-    "English-speaking cleaners, booking in 60 seconds via WhatsApp. 200+ expats served. From €36/hr.",
+    "Premium home cleaning in Amsterdam. Organic products, English-speaking cleaners, booked over WhatsApp.",
   openGraph: {
     type: "website",
     locale: "en_NL",
-    title: "ExpatCleaners — Premium cleaning for expats in Amsterdam",
+    title: "ExpatCleaners — A quieter kind of clean.",
     description:
-      "English-speaking cleaners, booking in 60 seconds via WhatsApp. From €36/hr.",
+      "Premium home cleaning in Amsterdam. Organic products, English-speaking cleaners, booked over WhatsApp.",
   },
 };
 
@@ -39,10 +35,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${instrumentSans.variable} ${fraunces.variable} h-full antialiased`}
+      className={`${interTight.variable} h-full antialiased`}
+      style={{ ["--font-display" as string]: "var(--font-sans)" }}
     >
-      <body className="min-h-full bg-brand-cream text-brand-ink flex flex-col">
-        <UrgencyBar />
+      <body className="min-h-full bg-brand-bg text-brand-ink flex flex-col">
         <Nav />
         <main className="flex-1">{children}</main>
         <Footer />

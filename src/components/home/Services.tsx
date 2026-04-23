@@ -3,162 +3,142 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
-import { UNSPLASH, BRAND } from "@/lib/constants";
+import { cn } from "@/lib/utils";
+import { BRAND } from "@/lib/constants";
 
-const EASE = [0.16, 1, 0.3, 1] as const;
+const EASE = [0.33, 1, 0.68, 1] as const;
 
-type ServiceCard = {
-  title: string;
-  copy: string;
+type Row = {
+  id: string;
+  name: string;
+  body: string;
   priceLine: string;
-  ctaLabel: string;
-  ctaHref: string;
-  ctaExternal?: boolean;
-  tag?: string;
   image: string;
-  span: "one" | "two";
 };
 
-const tenancyMsg = encodeURIComponent(
-  "Hi! I need an end of tenancy quote.",
-);
-
-const CARDS: ServiceCard[] = [
+// TODO: replace with licensed Stocksy/Unsplash+ assets per the briefs.
+const ROWS: Row[] = [
   {
-    title: "Regular cleaning",
-    copy: "Weekly or bi-weekly. Your home consistently clean. Set it once and forget it.",
+    id: "recurring",
+    name: "Recurring cleaning",
+    body: "Weekly or bi-weekly, same cleaner each time. The home stays even, the bar stays high.",
     priceLine: "From €36/hr on subscription",
-    ctaLabel: "Book now",
-    ctaHref: "/book",
-    tag: "Most popular",
-    image: UNSPLASH.regular,
-    span: "two",
+    image:
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1800&q=80&auto=format&fit=crop",
   },
   {
-    title: "One-off clean",
-    copy: "No commitment. Guests coming over? Post-party mess? We're there.",
+    id: "oneoff",
+    name: "One-off cleaning",
+    body: "For a single reset — before guests, after a party, when the week got away from you.",
     priceLine: "€44/hr · no commitment",
-    ctaLabel: "Book now",
-    ctaHref: "/book",
-    image: UNSPLASH.oneoff,
-    span: "one",
+    image:
+      "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1800&q=80&auto=format&fit=crop",
   },
   {
-    title: "Deep clean",
-    copy: "Inside appliances, skirting boards, behind everything. Move-in or move-out ready.",
-    priceLine: "€44/hr · min 3 hrs",
-    ctaLabel: "Book now",
-    ctaHref: "/book",
-    image: UNSPLASH.deep,
-    span: "one",
-  },
-  {
-    title: "End of tenancy",
-    copy: "Get your deposit back. We clean to landlord standard, top to bottom. Guaranteed.",
-    priceLine: "Fixed quote · fast turnaround",
-    ctaLabel: "Get a quote",
-    ctaHref: `https://wa.me/${BRAND.whatsappNumber}?text=${tenancyMsg}`,
-    ctaExternal: true,
-    tag: "Deposit-back",
-    image: UNSPLASH.tenancy,
-    span: "one",
+    id: "deep",
+    name: "Deep clean",
+    body: "Inside appliances, skirting boards, behind the things no one ever reaches. Move-in or move-out ready.",
+    priceLine: "€44/hr · min. 3 hours",
+    image:
+      "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=1800&q=80&auto=format&fit=crop",
   },
 ];
 
+const TENANCY_WHATSAPP = `https://wa.me/${BRAND.whatsappNumber}?text=${encodeURIComponent(
+  "Hi — I'd like a quote for an end-of-tenancy clean.",
+)}`;
+
 export function Services() {
   return (
-    <section id="services" className="bg-brand-cream py-24 md:py-36">
-      <div className="mx-auto max-w-6xl px-4">
+    <section id="services" className="bg-brand-bg py-24 md:py-44">
+      <div className="mx-auto max-w-[1280px] px-6">
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.7, ease: EASE }}
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ duration: 0.6, ease: EASE }}
+          className="mb-16 md:mb-24 max-w-[900px]"
         >
-          <div className="inline-flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand-sage" />
-            <span className="text-xs uppercase tracking-[0.22em] text-brand-graphite">
-              What we do
-            </span>
-          </div>
+          <p className="text-[12px] uppercase tracking-[0.1em] text-brand-ink-soft">
+            Services
+          </p>
           <h2
-            className="mt-5 max-w-3xl font-display text-[clamp(36px,6vw,64px)] leading-[1.02] tracking-tight text-brand-ink"
-            dangerouslySetInnerHTML={{
-              __html: "Every clean, <em>covered.</em>",
-            }}
-          />
+            className="mt-6 font-display text-[clamp(2.25rem,4vw,3.75rem)] leading-[1.05] tracking-[-0.03em] text-brand-ink"
+            style={{ fontWeight: 420 }}
+          >
+            What we do.
+          </h2>
         </motion.div>
 
-        <div className="mt-14 grid auto-rows-fr grid-cols-1 gap-4 md:grid-cols-2 md:gap-5 lg:grid-cols-3">
-          {CARDS.map((c, i) => (
-            <motion.div
-              key={c.title}
-              initial={{ opacity: 0, y: 24 }}
+        <div className="space-y-20 md:space-y-28">
+          {ROWS.map((r, i) => (
+            <motion.article
+              key={r.id}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.7, delay: i * 0.08, ease: EASE }}
-              className={
-                c.span === "two" ? "lg:col-span-2" : "lg:col-span-1"
-              }
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.6, ease: EASE }}
+              className="grid grid-cols-1 items-center gap-10 md:gap-16 lg:grid-cols-2"
             >
-              <Card card={c} />
-            </motion.div>
+              <div
+                className={cn(
+                  "relative aspect-[4/5] w-full overflow-hidden",
+                  i % 2 === 1 && "lg:order-2",
+                )}
+              >
+                <Image
+                  src={r.image}
+                  alt=""
+                  fill
+                  quality={80}
+                  sizes="(min-width: 1024px) 50vw, 100vw"
+                  className="object-cover"
+                />
+              </div>
+              <div className="lg:max-w-[480px]">
+                <h3
+                  className="font-display text-[clamp(2rem,3vw,3rem)] leading-[1.05] tracking-[-0.025em] text-brand-ink"
+                  style={{ fontWeight: 420 }}
+                >
+                  {r.name}
+                </h3>
+                <p className="mt-6 text-[17px] leading-[1.55] text-brand-ink-soft">
+                  {r.body}
+                </p>
+                <p className="mt-5 text-[14px] text-brand-ink-soft">
+                  {r.priceLine}
+                </p>
+                <Link
+                  href="/book"
+                  className="editorial-link mt-6 inline-block text-[17px] text-brand-ink"
+                >
+                  Book →
+                </Link>
+              </div>
+            </motion.article>
           ))}
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ duration: 0.6, ease: EASE }}
+          className="mt-24 border-t border-brand-line pt-10 md:mt-32 md:pt-14"
+        >
+          <p className="max-w-[760px] text-[17px] leading-[1.55] text-brand-ink">
+            Moving out? We do end-of-tenancy cleans to landlord standard.{" "}
+            <a
+              href={TENANCY_WHATSAPP}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="editorial-link text-brand-ink"
+            >
+              Request a quote →
+            </a>
+          </p>
+        </motion.div>
       </div>
     </section>
-  );
-}
-
-function Card({ card }: { card: ServiceCard }) {
-  const big = card.span === "two";
-  const linkProps = card.ctaExternal
-    ? { target: "_blank", rel: "noopener noreferrer" as const }
-    : {};
-  const LinkTag: React.ElementType = card.ctaExternal ? "a" : Link;
-  return (
-    <LinkTag
-      href={card.ctaHref}
-      {...linkProps}
-      className={`group relative block h-full overflow-hidden rounded-[24px] ${
-        big ? "min-h-[340px] md:min-h-[440px]" : "min-h-[280px] md:min-h-[320px]"
-      }`}
-    >
-      <Image
-        src={`${card.image}?w=1400&auto=format&fit=crop&q=80`}
-        alt=""
-        fill
-        sizes={big ? "(min-width: 1024px) 66vw, 100vw" : "(min-width: 1024px) 33vw, 100vw"}
-        className="object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-[1.04]"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-brand-ink/80 via-brand-ink/20 to-transparent" />
-
-      {card.tag && (
-        <span className="absolute left-5 top-5 inline-flex items-center rounded-full bg-brand-cream/95 px-3 py-1 text-xs font-medium text-brand-ink backdrop-blur">
-          {card.tag}
-        </span>
-      )}
-
-      <div className="absolute inset-x-0 bottom-0 p-6 md:p-7">
-        <h3
-          className={`font-display tracking-tight text-brand-cream ${
-            big ? "text-3xl md:text-4xl" : "text-2xl"
-          }`}
-        >
-          {card.title}
-        </h3>
-        <p className="mt-2 max-w-md text-sm leading-relaxed text-brand-cream/85">
-          {card.copy}
-        </p>
-        <div className="mt-4 flex items-center justify-between gap-3">
-          <span className="text-xs text-brand-cream/75">{card.priceLine}</span>
-          <span className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-cream">
-            {card.ctaLabel}
-            <ArrowUpRight className="h-4 w-4 transition-transform duration-500 group-hover:rotate-45" />
-          </span>
-        </div>
-      </div>
-    </LinkTag>
   );
 }

@@ -20,7 +20,7 @@ export function ServiceCard({ service, selected, onSelect }: Props) {
         "group relative flex h-full flex-col items-start gap-2 rounded-2xl border bg-white p-5 text-left transition-all",
         "hover:-translate-y-0.5 hover:shadow-[0_6px_24px_-12px_rgba(42,42,40,0.18)]",
         selected
-          ? "border-brand-terracotta bg-gradient-to-b from-white to-brand-linen/60 shadow-[0_6px_24px_-12px_rgba(232,92,58,0.3)]"
+          ? "border-brand-terracotta bg-gradient-to-b from-white to-brand-linen/60 shadow-[0_6px_24px_-12px_rgba(26,26,26,0.3)]"
           : "border-brand-hairline",
       )}
     >

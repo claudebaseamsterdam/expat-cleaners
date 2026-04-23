@@ -148,7 +148,7 @@ function ThankYouInner() {
             href={waHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="group inline-flex h-14 items-center gap-2 rounded-full bg-brand-terracotta px-7 text-base font-medium text-white transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-14px_rgba(232,92,58,0.6)]"
+            className="group inline-flex h-14 items-center gap-2 rounded-full bg-brand-terracotta px-7 text-base font-medium text-white transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-14px_rgba(26,26,26,0.6)]"
           >
             <MessageCircle className="h-4 w-4" />
             Open WhatsApp

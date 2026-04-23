@@ -1,6 +1,6 @@
 import { Hero } from "@/components/home/Hero";
-import { StatsBar } from "@/components/home/StatsBar";
-import { HowItWorks } from "@/components/home/HowItWorks";
+import { Proof } from "@/components/home/Proof";
+import { Approach } from "@/components/home/Approach";
 import { Services } from "@/components/home/Services";
 import { Pricing } from "@/components/home/Pricing";
 import { Reviews } from "@/components/home/Reviews";
@@ -11,8 +11,8 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <StatsBar />
-      <HowItWorks />
+      <Proof />
+      <Approach />
       <Services />
       <Pricing />
       <Reviews />

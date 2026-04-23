@@ -183,7 +183,7 @@ export function Step3Review({
         type="button"
         onClick={onSubmit}
         disabled={!canSubmit}
-        className="group inline-flex h-14 w-full items-center justify-center gap-2 rounded-full bg-brand-terracotta text-base font-medium text-white transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-14px_rgba(232,92,58,0.6)] disabled:cursor-not-allowed disabled:opacity-60"
+        className="group inline-flex h-14 w-full items-center justify-center gap-2 rounded-full bg-brand-terracotta text-base font-medium text-white transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-14px_rgba(26,26,26,0.6)] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {submitting ? (
           <>

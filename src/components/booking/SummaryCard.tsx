@@ -186,7 +186,7 @@ export function SummaryCard({
           type="button"
           onClick={onConfirm}
           disabled={submitting}
-          className="group mt-5 inline-flex h-14 w-full items-center justify-center gap-2 rounded-full bg-brand-terracotta px-6 text-base font-medium text-white transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-14px_rgba(232,92,58,0.6)] disabled:cursor-not-allowed disabled:opacity-70"
+          className="group mt-5 inline-flex h-14 w-full items-center justify-center gap-2 rounded-full bg-brand-terracotta px-6 text-base font-medium text-white transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-14px_rgba(26,26,26,0.6)] disabled:cursor-not-allowed disabled:opacity-70"
         >
           {submitting ? (
             <>

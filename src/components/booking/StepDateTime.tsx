@@ -268,7 +268,7 @@ export function StepDateTime({
                 type="button"
                 onClick={() => onWaitingList({ joined: true })}
                 disabled={!state.preferredTime}
-                className="inline-flex h-12 items-center justify-center rounded-full bg-brand-terracotta px-6 text-sm font-medium text-white transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_24px_-12px_rgba(232,92,58,0.5)] disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex h-12 items-center justify-center rounded-full bg-brand-terracotta px-6 text-sm font-medium text-white transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_24px_-12px_rgba(26,26,26,0.5)] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Join waiting list
               </button>
