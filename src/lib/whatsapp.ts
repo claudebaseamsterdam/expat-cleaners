@@ -1,6 +1,9 @@
-import { BUSINESS, WHATSAPP_DEFAULT_MESSAGE } from "./constants";
+import { BRAND, WHATSAPP_URL } from "./constants";
 
-export function whatsappLink(message: string = WHATSAPP_DEFAULT_MESSAGE) {
+export { WHATSAPP_URL };
+
+export function whatsappLink(message?: string): string {
+  if (!message) return WHATSAPP_URL;
   const encoded = encodeURIComponent(message);
-  return `https://wa.me/${BUSINESS.whatsappNumber}?text=${encoded}`;
+  return `https://wa.me/${BRAND.whatsappNumber}?text=${encoded}`;
 }

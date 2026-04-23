@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowUpRight, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { ArrowUpRight, Loader2, Tag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
@@ -15,9 +16,10 @@ type Props = {
   state: BookingState;
   ready: boolean;
   waHref: string;
+  submitting: boolean;
+  onConfirm: () => void;
   onWhatsApp: () => void;
-  onSendRequest: () => void;
-  sending: boolean;
+  onCoupon: (code: string) => void;
   compact?: boolean;
 };
 
@@ -26,17 +28,19 @@ export function SummaryCard({
   state,
   ready,
   waHref,
+  submitting,
+  onConfirm,
   onWhatsApp,
-  onSendRequest,
-  sending,
+  onCoupon,
   compact,
 }: Props) {
+  const [couponOpen, setCouponOpen] = useState(!!state.couponCode);
   const {
     service,
     frequency,
     hours,
     labor,
-    laborAfterDiscount,
+    laborDiscounted,
     laborSaved,
     addonLines,
     subtotal,
@@ -61,35 +65,29 @@ export function SummaryCard({
         </p>
       ) : (
         <div className="mt-5 space-y-3 text-sm">
-          <Row
-            left={
-              <>
-                <div className="font-medium text-brand-ink">
-                  {service.label}
-                </div>
-                <div className="mt-0.5 text-xs text-brand-graphite">
-                  {formatHours(hours)} est. · {state.home.beds} bed /{" "}
-                  {state.home.baths} bath
-                </div>
-              </>
-            }
-            right={
-              hasDiscount ? (
-                <div className="text-right">
-                  <div className="text-xs text-brand-graphite line-through tabular-nums">
-                    {formatEuro(labor)}
-                  </div>
-                  <div className="tabular-nums text-brand-ink">
-                    {formatEuro(laborAfterDiscount)}
-                  </div>
-                </div>
-              ) : (
-                <span className="tabular-nums text-brand-ink">
+          <div className="flex items-baseline justify-between gap-4">
+            <div className="min-w-0">
+              <div className="font-medium text-brand-ink">{service.label}</div>
+              <div className="mt-0.5 text-xs text-brand-graphite">
+                {formatHours(hours)} est. · {state.home.beds} bed /{" "}
+                {state.home.baths} bath
+              </div>
+            </div>
+            {hasDiscount ? (
+              <div className="shrink-0 text-right">
+                <div className="text-xs text-brand-graphite line-through tabular-nums">
                   {formatEuro(labor)}
-                </span>
-              )
-            }
-          />
+                </div>
+                <div className="tabular-nums text-brand-ink">
+                  {formatEuro(laborDiscounted)}
+                </div>
+              </div>
+            ) : (
+              <span className="shrink-0 tabular-nums text-brand-ink">
+                {formatEuro(labor)}
+              </span>
+            )}
+          </div>
 
           {hasDiscount && (
             <div className="flex items-baseline justify-between text-brand-sage">
@@ -129,7 +127,7 @@ export function SummaryCard({
                 key={subtotal}
                 initial={{ scale: 1.06, opacity: 0.6 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                 className="font-display text-2xl tabular-nums text-brand-ink"
               >
                 {formatEuro(subtotal)}
@@ -140,20 +138,58 @@ export function SummaryCard({
       )}
 
       <p className="mt-4 text-xs leading-relaxed text-brand-graphite">
-        Final price confirmed before the clean. No payment online.
+        Final price confirmed on arrival. No payment until after clean.
       </p>
 
+      <div className="mt-4">
+        {!couponOpen ? (
+          <button
+            type="button"
+            onClick={() => setCouponOpen(true)}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-graphite hover:text-brand-ink"
+          >
+            <Tag className="h-3 w-3" />
+            Have a code?
+          </button>
+        ) : (
+          <div className="flex gap-2">
+            <input
+              value={state.couponCode}
+              onChange={(e) => onCoupon(e.target.value.toUpperCase())}
+              placeholder="Enter code"
+              className="h-11 flex-1 rounded-xl border border-brand-hairline bg-brand-linen px-3 text-sm uppercase tracking-wider text-brand-ink outline-none focus:border-brand-sage focus:ring-2 focus:ring-brand-sage/30"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                if (!state.couponCode) setCouponOpen(false);
+              }}
+              className="h-11 rounded-xl border border-brand-hairline bg-white px-3 text-xs font-medium text-brand-ink hover:border-brand-ink/30"
+            >
+              {state.couponCode ? "Apply" : "Close"}
+            </button>
+          </div>
+        )}
+      </div>
+
       {ready ? (
-        <a
-          href={waHref}
-          onClick={onWhatsApp}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group mt-5 inline-flex h-14 w-full items-center justify-center gap-2 rounded-full bg-brand-terracotta px-6 text-base font-medium text-white transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_30px_-12px_rgba(232,92,58,0.5)]"
+        <button
+          type="button"
+          onClick={onConfirm}
+          disabled={submitting}
+          className="group mt-5 inline-flex h-14 w-full items-center justify-center gap-2 rounded-full bg-brand-terracotta px-6 text-base font-medium text-white transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-14px_rgba(232,92,58,0.6)] disabled:cursor-not-allowed disabled:opacity-70"
         >
-          Continue on WhatsApp
-          <ArrowUpRight className="h-4 w-4 transition-transform group-hover:rotate-45" />
-        </a>
+          {submitting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" /> Confirming…
+            </>
+          ) : (
+            <>
+              Confirm booking
+              <ArrowUpRight className="h-4 w-4 transition-transform duration-500 group-hover:rotate-45" />
+            </>
+          )}
+        </button>
       ) : (
         <button
           type="button"
@@ -164,35 +200,16 @@ export function SummaryCard({
         </button>
       )}
 
-      <button
-        type="button"
-        onClick={onSendRequest}
-        disabled={!ready || sending}
-        className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 text-sm font-medium text-brand-graphite transition-colors hover:text-brand-ink disabled:cursor-not-allowed disabled:opacity-40"
+      <a
+        href={waHref}
+        onClick={onWhatsApp}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-3 inline-flex h-11 w-full items-center justify-center gap-1.5 text-sm font-medium text-brand-graphite transition-colors hover:text-brand-ink"
       >
-        {sending ? (
-          <>
-            <Loader2 className="h-3.5 w-3.5 animate-spin" /> Sending…
-          </>
-        ) : (
-          "Rather send a request instead?"
-        )}
-      </button>
+        Prefer WhatsApp? Message us instead
+        <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-500 group-hover:rotate-45" />
+      </a>
     </aside>
-  );
-}
-
-function Row({
-  left,
-  right,
-}: {
-  left: React.ReactNode;
-  right: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-baseline justify-between gap-4">
-      <div className="min-w-0">{left}</div>
-      <div className="shrink-0">{right}</div>
-    </div>
   );
 }

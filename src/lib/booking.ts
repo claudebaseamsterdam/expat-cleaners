@@ -26,7 +26,6 @@ export type Extra = {
   icon: string;
   price: number;
   max?: number;
-  group: "supplies" | "addons";
 };
 
 export type Frequency = {
@@ -45,7 +44,7 @@ export const SERVICES: readonly Service[] = [
     label: "Regular cleaning",
     baseRate: BASE_RATE,
     minHours: 2,
-    desc: "Standard home upkeep, on repeat.",
+    desc: "Standard home maintenance",
     icon: "🧽",
   },
   {
@@ -53,7 +52,7 @@ export const SERVICES: readonly Service[] = [
     label: "Deep cleaning",
     baseRate: BASE_RATE,
     minHours: 3,
-    desc: "Every corner, every crevice.",
+    desc: "Every corner, every crevice",
     icon: "✨",
   },
   {
@@ -61,7 +60,7 @@ export const SERVICES: readonly Service[] = [
     label: "Move-in cleaning",
     baseRate: BASE_RATE,
     minHours: 3,
-    desc: "Fresh-start ready before the keys are yours.",
+    desc: "Fresh-start ready",
     icon: "📦",
   },
   {
@@ -69,7 +68,7 @@ export const SERVICES: readonly Service[] = [
     label: "Move-out cleaning",
     baseRate: BASE_RATE,
     minHours: 3,
-    desc: "Deposit-back standard for handover day.",
+    desc: "Deposit-back guarantee",
     icon: "🔑",
   },
   {
@@ -77,7 +76,7 @@ export const SERVICES: readonly Service[] = [
     label: "Airbnb turnover",
     baseRate: BASE_RATE,
     minHours: 2,
-    desc: "Guest-ready reset between stays.",
+    desc: "Guest-ready reset",
     icon: "🛏️",
   },
   {
@@ -85,7 +84,7 @@ export const SERVICES: readonly Service[] = [
     label: "Office cleaning",
     baseRate: BASE_RATE,
     minHours: 2,
-    desc: "Workspace hygiene, Mon–Fri or weekly.",
+    desc: "Workspace hygiene",
     icon: "💼",
   },
   {
@@ -93,96 +92,28 @@ export const SERVICES: readonly Service[] = [
     label: "After-builders",
     baseRate: BASE_RATE,
     minHours: 4,
-    desc: "Post-renovation dust-to-gleam reset.",
+    desc: "Post-renovation reset",
     icon: "🔨",
   },
 ];
 
 export const EXTRAS: readonly Extra[] = [
-  {
-    id: "no_vacuum",
-    label: "No vacuum at home",
-    icon: "🧹",
-    price: 50,
-    max: 1,
-    group: "supplies",
-  },
-  {
-    id: "no_products",
-    label: "No cleaning products at home",
-    icon: "🧴",
-    price: 30,
-    max: 1,
-    group: "supplies",
-  },
-  { id: "oven", label: "Inside oven", icon: "🔥", price: 30, group: "addons" },
-  {
-    id: "fridge",
-    label: "Inside fridge",
-    icon: "🌬️",
-    price: 20,
-    group: "addons",
-  },
-  {
-    id: "dishwasher",
-    label: "Inside dishwasher",
-    icon: "🧼",
-    price: 20,
-    group: "addons",
-  },
-  {
-    id: "microwave",
-    label: "Inside microwave",
-    icon: "🍽️",
-    price: 20,
-    group: "addons",
-  },
-  {
-    id: "cabinets",
-    label: "Inside cabinets",
-    icon: "🚪",
-    price: 10,
-    group: "addons",
-  },
-  {
-    id: "windows",
-    label: "Inside windows",
-    icon: "🪟",
-    price: 10,
-    group: "addons",
-  },
-  { id: "blinds", label: "Blinds", icon: "✨", price: 20, group: "addons" },
-  { id: "balcony", label: "Balcony", icon: "🌿", price: 40, group: "addons" },
-  {
-    id: "laundry",
-    label: "In-house laundry",
-    icon: "👕",
-    price: 30,
-    group: "addons",
-  },
-  { id: "ironing", label: "Ironing", icon: "👔", price: 25, group: "addons" },
-  {
-    id: "walls",
-    label: "Wall wipe-down",
-    icon: "🧱",
-    price: 30,
-    group: "addons",
-  },
-  { id: "stairs", label: "Stairs", icon: "🪜", price: 20, group: "addons" },
-  {
-    id: "mold",
-    label: "Bathroom mould treatment",
-    icon: "🦠",
-    price: 50,
-    group: "addons",
-  },
-  {
-    id: "organise",
-    label: "Organisation",
-    icon: "📦",
-    price: 30,
-    group: "addons",
-  },
+  { id: "no_vacuum", label: "No vacuum at home", icon: "🧹", price: 50, max: 1 },
+  { id: "no_products", label: "No cleaning products", icon: "🧴", price: 30, max: 1 },
+  { id: "oven", label: "Inside oven", icon: "🔥", price: 30 },
+  { id: "fridge", label: "Inside fridge", icon: "🌬️", price: 20 },
+  { id: "dishwasher", label: "Inside dishwasher", icon: "🧼", price: 20 },
+  { id: "microwave", label: "Inside microwave", icon: "🍽️", price: 20 },
+  { id: "cabinets", label: "Inside cabinets", icon: "🚪", price: 10 },
+  { id: "windows", label: "Inside windows", icon: "🪟", price: 10 },
+  { id: "blinds", label: "Blinds", icon: "✨", price: 20 },
+  { id: "balcony", label: "Balcony", icon: "🌿", price: 40 },
+  { id: "laundry", label: "In-house laundry", icon: "👕", price: 30 },
+  { id: "ironing", label: "Ironing", icon: "👔", price: 25 },
+  { id: "walls", label: "Wall wipe-down", icon: "🧱", price: 30 },
+  { id: "stairs", label: "Stairs", icon: "🪜", price: 20 },
+  { id: "mold", label: "Bathroom mould treatment", icon: "🦠", price: 50 },
+  { id: "organise", label: "Organisation", icon: "📦", price: 30 },
 ];
 
 export const FREQUENCIES: readonly Frequency[] = [
@@ -216,7 +147,35 @@ export const FREQUENCIES: readonly Frequency[] = [
   },
 ];
 
+export const TIME_SLOTS = ["09:00", "12:00", "14:00", "16:00"] as const;
+export type TimeSlot = (typeof TIME_SLOTS)[number];
+
+export const HOME_TYPES: { id: HomeType; label: string }[] = [
+  { id: "apartment", label: "Apartment" },
+  { id: "house", label: "House" },
+  { id: "studio", label: "Studio" },
+];
+
+export const FULLY_BOOKED_DATES: readonly string[] = [
+  // Mock fully-booked dates (will be replaced by real availability API later)
+  // Dates relative to the "today" in dev so the waiting-list flow is visible.
+  new Date(Date.now() + 2 * 86400_000).toISOString().slice(0, 10),
+  new Date(Date.now() + 6 * 86400_000).toISOString().slice(0, 10),
+];
+
+export function isDateFullyBooked(date: string): boolean {
+  if (!date) return false;
+  return FULLY_BOOKED_DATES.includes(date);
+}
+
 export type BookingState = {
+  details: {
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+    postalCode: string;
+  };
   serviceId: ServiceId | null;
   home: {
     beds: number;
@@ -226,35 +185,36 @@ export type BookingState = {
   };
   extras: Record<string, number>;
   frequencyId: FrequencyId;
-  contact: {
-    name: string;
-    phone: string;
-    email: string;
-    address: string;
-    postalCode: string;
-  };
   preferredDate: string;
   preferredTime: string;
+  waitingListJoined: boolean;
+  waitingListNote: string;
   notesCleaner: string;
   notesOffice: string;
+  consent: boolean;
+  couponCode: string;
 };
 
 export const defaultBookingState: BookingState = {
+  details: {
+    name: "",
+    email: "",
+    phone: "+31 ",
+    address: "",
+    postalCode: "",
+  },
   serviceId: null,
   home: { beds: 1, baths: 1, size: "", type: "apartment" },
   extras: {},
   frequencyId: "once",
-  contact: {
-    name: "",
-    phone: "+31 ",
-    email: "",
-    address: "",
-    postalCode: "",
-  },
   preferredDate: "",
   preferredTime: "",
+  waitingListJoined: false,
+  waitingListNote: "",
   notesCleaner: "",
   notesOffice: "",
+  consent: false,
+  couponCode: "",
 };
 
 export const getService = (id: ServiceId | null): Service | undefined =>
@@ -271,30 +231,19 @@ export function estimateHours(
   baths: number,
   serviceId: ServiceId | null,
 ): number {
-  const base =
-    serviceId === "builders"
-      ? 4
-      : serviceId === "deep" ||
-          serviceId === "movein" ||
-          serviceId === "moveout"
-        ? 3
-        : 2;
-
-  const multiplier =
-    serviceId === "builders"
-      ? 1.6
-      : serviceId === "movein" || serviceId === "moveout"
-        ? 1.4
-        : serviceId === "deep"
-          ? 1.3
-          : 1.0;
-
+  if (!serviceId) return 2;
+  const base = ["deep", "moveout", "movein"].includes(serviceId) ? 3 : 2;
   const extra =
     Math.max(0, beds - 1) * 0.5 + Math.max(0, baths - 1) * 0.5;
-
-  const raw = (base + extra) * multiplier;
-  const rounded = Math.round(raw * 2) / 2;
-  return Math.max(base, rounded);
+  const mult =
+    serviceId === "deep"
+      ? 1.4
+      : ["moveout", "movein"].includes(serviceId)
+        ? 1.5
+        : serviceId === "builders"
+          ? 2
+          : 1;
+  return Math.max(2, Math.ceil((base + extra) * mult * 2) / 2);
 }
 
 export type AddonLine = { extra: Extra; qty: number; line: number };
@@ -305,11 +254,12 @@ export type PriceBreakdown = {
   hours: number;
   baseRate: number;
   labor: number;
-  laborAfterDiscount: number;
+  laborDiscounted: number;
   laborSaved: number;
   addonLines: AddonLine[];
   extrasTotal: number;
   subtotal: number;
+  discount: number;
 };
 
 export function calcTotal(state: BookingState): PriceBreakdown {
@@ -320,8 +270,8 @@ export function calcTotal(state: BookingState): PriceBreakdown {
     : 0;
   const baseRate = service?.baseRate ?? BASE_RATE;
   const labor = baseRate * hours;
-  const laborAfterDiscount = labor * (1 - frequency.discount);
-  const laborSaved = labor - laborAfterDiscount;
+  const laborDiscounted = labor * (1 - frequency.discount);
+  const laborSaved = labor - laborDiscounted;
 
   const addonLines: AddonLine[] = Object.entries(state.extras)
     .map(([id, qty]) => {
@@ -332,7 +282,7 @@ export function calcTotal(state: BookingState): PriceBreakdown {
     .filter((l): l is AddonLine => l !== null);
 
   const extrasTotal = addonLines.reduce((acc, l) => acc + l.line, 0);
-  const subtotal = laborAfterDiscount + extrasTotal;
+  const subtotal = laborDiscounted + extrasTotal;
 
   return {
     service,
@@ -340,11 +290,12 @@ export function calcTotal(state: BookingState): PriceBreakdown {
     hours,
     baseRate,
     labor,
-    laborAfterDiscount,
+    laborDiscounted,
     laborSaved,
     addonLines,
     extrasTotal,
     subtotal,
+    discount: frequency.discount,
   };
 }
 
@@ -361,50 +312,45 @@ export function buildBookingMessage(state: BookingState): string {
   const { service, frequency, hours, addonLines, subtotal } = price;
 
   if (!service) {
-    return "Hey ExpatCleaners 👋 I'd like to book a clean.";
+    return "Hey ExpatCleaners — I'd like to book a clean.";
   }
 
   const lines: string[] = [];
-  lines.push("Hey ExpatCleaners — I'd like to book a clean.");
-  lines.push("");
-  lines.push(`• Service: ${service.label}`);
+  lines.push("Hey ExpatCleaners — I'd like to book:");
   lines.push(
-    `• Home: ${state.home.beds} bed / ${state.home.baths} bath / ${state.home.type}`,
+    `- ${service.label} · ${formatHours(hours)} · ${frequency.label}`,
   );
-  if (state.home.size) lines.push(`• Size: ${state.home.size}m²`);
-  lines.push(`• Estimated hours: ${formatHours(hours)}`);
-  lines.push(`• Frequency: ${frequency.label}`);
-  if (addonLines.length > 0) {
-    lines.push("• Extras:");
-    for (const { extra, qty } of addonLines) {
-      lines.push(`   – ${extra.label}${qty > 1 ? ` ×${qty}` : ""}`);
-    }
-  }
-  if (state.preferredDate)
-    lines.push(`• Preferred date: ${state.preferredDate}`);
-  if (state.preferredTime)
-    lines.push(`• Preferred time: ${state.preferredTime}`);
-  if (state.contact.address)
+  if (state.details.address) {
     lines.push(
-      `• Address: ${state.contact.address}${state.contact.postalCode ? `, ${state.contact.postalCode}` : ""}`,
+      `- ${state.details.address}${state.details.postalCode ? `, ${state.details.postalCode}` : ""}`,
     );
-  if (state.contact.name) lines.push(`• Name: ${state.contact.name}`);
-  if (state.contact.phone && state.contact.phone.trim() !== "+31")
-    lines.push(`• Phone: ${state.contact.phone}`);
-  if (state.contact.email) lines.push(`• Email: ${state.contact.email}`);
-  if (state.notesCleaner)
-    lines.push(`• Notes for cleaner: ${state.notesCleaner}`);
-  if (state.notesOffice)
-    lines.push(`• Notes for office: ${state.notesOffice}`);
-  lines.push("");
-  lines.push(`Estimated total: ${formatEuro(subtotal)}`);
-  lines.push("");
-  lines.push("Please let me know availability 🙏");
+  }
+  if (addonLines.length > 0) {
+    const list = addonLines
+      .map((l) => `${l.extra.label}${l.qty > 1 ? ` ×${l.qty}` : ""}`)
+      .join(", ");
+    lines.push(`- Extras: ${list}`);
+  }
+  if (state.preferredDate || state.preferredTime) {
+    lines.push(
+      `- Preferred: ${state.preferredDate || "—"} ${state.preferredTime || ""}`.trim(),
+    );
+  }
+  if (state.waitingListJoined) {
+    lines.push("- On waiting list for earliest opening");
+  }
+  lines.push(`Total estimate: ${formatEuro(subtotal)}`);
+  if (state.details.name) lines.push(`— ${state.details.name}`);
 
   return lines.join("\n");
 }
 
+export function buildConfirmedMessage(ref: string): string {
+  return `Hey ExpatCleaners — I just confirmed my booking (ref ${ref}). Looking forward to hearing from you 🙌`;
+}
+
 const DRAFT_KEY = "ec_booking_draft";
+const CONFIRMED_KEY = "ec_booking_confirmed";
 
 export function loadDraft(): BookingState | null {
   if (typeof window === "undefined") return null;
@@ -415,8 +361,8 @@ export function loadDraft(): BookingState | null {
     return {
       ...defaultBookingState,
       ...parsed,
+      details: { ...defaultBookingState.details, ...(parsed.details ?? {}) },
       home: { ...defaultBookingState.home, ...(parsed.home ?? {}) },
-      contact: { ...defaultBookingState.contact, ...(parsed.contact ?? {}) },
       extras: parsed.extras ?? {},
     };
   } catch {
@@ -433,24 +379,76 @@ export function saveDraft(state: BookingState): void {
   }
 }
 
+export type ConfirmedBooking = {
+  ref: string;
+  state: BookingState;
+  at: string;
+};
+
+export function saveConfirmed(c: ConfirmedBooking): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(CONFIRMED_KEY, JSON.stringify(c));
+  } catch {
+    /* ignore */
+  }
+}
+
+export function loadConfirmed(): ConfirmedBooking | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(CONFIRMED_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as ConfirmedBooking;
+  } catch {
+    return null;
+  }
+}
+
+export function clearDraft(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(DRAFT_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function validateDetails(d: BookingState["details"]): {
+  name: boolean;
+  email: boolean;
+  phone: boolean;
+  address: boolean;
+  postalCode: boolean;
+  allRequired: boolean;
+} {
+  const name = d.name.trim().length >= 2;
+  const email = EMAIL_RE.test(d.email);
+  const phoneDigits = d.phone.replace(/\D/g, "");
+  const phone = phoneDigits.length >= 9;
+  const address = d.address.trim().length >= 4;
+  const postalCode = /^\s*\d{4}\s?[A-Z]{0,2}\s*$/i.test(d.postalCode);
+  return {
+    name,
+    email,
+    phone,
+    address,
+    postalCode,
+    allRequired: name && email && phone && address && postalCode,
+  };
+}
+
 export function isBookingReady(state: BookingState): boolean {
+  const v = validateDetails(state.details);
+  if (!v.allRequired) return false;
   if (!state.serviceId) return false;
   if (state.home.beds < 0 || state.home.baths < 1) return false;
   if (!state.frequencyId) return false;
-  if (!state.contact.name.trim()) return false;
-  const phoneDigits = state.contact.phone.replace(/\D/g, "");
-  if (phoneDigits.length < 9) return false;
-  if (!state.contact.address.trim()) return false;
-  if (!state.contact.postalCode.trim()) return false;
-  if (!state.preferredDate) return false;
-  if (!state.preferredTime) return false;
+  const hasSlot = !!state.preferredDate && !!state.preferredTime;
+  const hasWaitingList =
+    !!state.preferredDate && state.waitingListJoined;
+  if (!hasSlot && !hasWaitingList) return false;
   return true;
 }
-
-export const TIME_SLOTS = ["09:00", "12:00", "14:00", "16:00"] as const;
-
-export const HOME_TYPES: { id: HomeType; label: string }[] = [
-  { id: "apartment", label: "Apartment" },
-  { id: "house", label: "House" },
-  { id: "studio", label: "Studio" },
-];

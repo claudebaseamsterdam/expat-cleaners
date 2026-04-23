@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     payload = await request.json();
   } catch {
     return NextResponse.json(
-      { ok: false, error: "Invalid JSON" },
+      { success: false, error: "Invalid JSON" },
       { status: 400 },
     );
   }
@@ -16,8 +16,6 @@ export async function POST(request: Request) {
   // eslint-disable-next-line no-console
   console.log("[book] request received", JSON.stringify(payload, null, 2));
 
-  return NextResponse.json({
-    ok: true,
-    ref: `EC-${Date.now().toString(36).toUpperCase()}`,
-  });
+  const ref = `EC-${Date.now().toString(36).toUpperCase()}`;
+  return NextResponse.json({ success: true, ref });
 }

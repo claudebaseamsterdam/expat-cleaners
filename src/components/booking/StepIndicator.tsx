@@ -3,17 +3,21 @@
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type Step = { id: number; label: string; complete: boolean };
+export type IndicatorStep = {
+  id: number;
+  label: string;
+  complete: boolean;
+};
 
 type Props = {
-  steps: Step[];
+  steps: IndicatorStep[];
   active: number;
   onJump?: (id: number) => void;
 };
 
-export function ProgressSteps({ steps, active, onJump }: Props) {
+export function StepIndicator({ steps, active, onJump }: Props) {
   return (
-    <ol className="flex flex-col gap-4">
+    <ol className="flex flex-col gap-3.5">
       {steps.map((s) => {
         const isActive = s.id === active;
         const isDone = s.complete && !isActive;
@@ -26,9 +30,8 @@ export function ProgressSteps({ steps, active, onJump }: Props) {
             >
               <span
                 className={cn(
-                  "grid h-7 w-7 shrink-0 place-items-center rounded-full border text-xs font-semibold tabular-nums transition-colors",
-                  isActive &&
-                    "border-brand-sage bg-brand-sage text-white",
+                  "grid h-7 w-7 shrink-0 place-items-center rounded-full border text-[11px] font-semibold tabular-nums transition-colors",
+                  isActive && "border-brand-sage bg-brand-sage text-white",
                   isDone &&
                     "border-brand-terracotta bg-brand-terracotta text-white",
                   !isActive &&
