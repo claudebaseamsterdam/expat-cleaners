@@ -1,130 +1,260 @@
 export type ServiceId =
-  | "recurring"
-  | "one-off"
+  | "regular"
   | "deep"
-  | "move-in-out"
-  | "airbnb";
+  | "movein"
+  | "moveout"
+  | "airbnb"
+  | "office"
+  | "builders";
 
-export type FrequencyId = "one-time" | "monthly" | "biweekly" | "weekly";
+export type FrequencyId = "once" | "monthly" | "biweekly" | "weekly";
 
-export type AddonId =
-  | "oven"
-  | "fridge"
-  | "windows"
-  | "cabinets"
-  | "dishwasher"
-  | "microwave"
-  | "laundry"
-  | "ironing"
-  | "balcony"
-  | "blinds";
+export type HomeType = "apartment" | "house" | "studio";
 
 export type Service = {
   id: ServiceId;
-  name: string;
-  description: string;
-  rate: number;
+  label: string;
+  baseRate: number;
   minHours: number;
-  allowsFrequency: boolean;
+  desc: string;
+  icon: string;
 };
 
-export type Addon = {
-  id: AddonId;
-  name: string;
+export type Extra = {
+  id: string;
+  label: string;
+  icon: string;
   price: number;
+  max?: number;
+  group: "supplies" | "addons";
 };
 
 export type Frequency = {
   id: FrequencyId;
-  name: string;
+  label: string;
   discount: number;
+  subLabel: string;
+  effectiveRate: number;
 };
+
+export const BASE_RATE = 44;
 
 export const SERVICES: readonly Service[] = [
   {
-    id: "recurring",
-    name: "Recurring clean",
-    description: "Regular upkeep on your schedule. Same cleaner when possible.",
-    rate: 36,
+    id: "regular",
+    label: "Regular cleaning",
+    baseRate: BASE_RATE,
     minHours: 2,
-    allowsFrequency: true,
-  },
-  {
-    id: "one-off",
-    name: "One-off clean",
-    description: "A single thorough clean, whenever you need it.",
-    rate: 44,
-    minHours: 2,
-    allowsFrequency: false,
+    desc: "Standard home upkeep, on repeat.",
+    icon: "🧽",
   },
   {
     id: "deep",
-    name: "Deep clean",
-    description: "Top-to-bottom reset for a truly spotless home.",
-    rate: 44,
-    minHours: 4,
-    allowsFrequency: false,
+    label: "Deep cleaning",
+    baseRate: BASE_RATE,
+    minHours: 3,
+    desc: "Every corner, every crevice.",
+    icon: "✨",
   },
   {
-    id: "move-in-out",
-    name: "Move-in / move-out",
-    description: "Handover-ready cleaning for landlords and tenants.",
-    rate: 44,
-    minHours: 4,
-    allowsFrequency: false,
+    id: "movein",
+    label: "Move-in cleaning",
+    baseRate: BASE_RATE,
+    minHours: 3,
+    desc: "Fresh-start ready before the keys are yours.",
+    icon: "📦",
+  },
+  {
+    id: "moveout",
+    label: "Move-out cleaning",
+    baseRate: BASE_RATE,
+    minHours: 3,
+    desc: "Deposit-back standard for handover day.",
+    icon: "🔑",
   },
   {
     id: "airbnb",
-    name: "Airbnb turnover",
-    description: "Guest-ready turnovers between stays.",
-    rate: 44,
+    label: "Airbnb turnover",
+    baseRate: BASE_RATE,
     minHours: 2,
-    allowsFrequency: true,
+    desc: "Guest-ready reset between stays.",
+    icon: "🛏️",
+  },
+  {
+    id: "office",
+    label: "Office cleaning",
+    baseRate: BASE_RATE,
+    minHours: 2,
+    desc: "Workspace hygiene, Mon–Fri or weekly.",
+    icon: "💼",
+  },
+  {
+    id: "builders",
+    label: "After-builders",
+    baseRate: BASE_RATE,
+    minHours: 4,
+    desc: "Post-renovation dust-to-gleam reset.",
+    icon: "🔨",
   },
 ];
 
-export const ADDONS: readonly Addon[] = [
-  { id: "oven", name: "Inside oven", price: 25 },
-  { id: "fridge", name: "Inside fridge", price: 20 },
-  { id: "windows", name: "Inside windows", price: 20 },
-  { id: "cabinets", name: "Inside cabinets", price: 15 },
-  { id: "dishwasher", name: "Inside dishwasher", price: 15 },
-  { id: "microwave", name: "Inside microwave", price: 10 },
-  { id: "laundry", name: "Laundry", price: 15 },
-  { id: "ironing", name: "Ironing", price: 30 },
-  { id: "balcony", name: "Balcony", price: 25 },
-  { id: "blinds", name: "Blinds", price: 15 },
+export const EXTRAS: readonly Extra[] = [
+  {
+    id: "no_vacuum",
+    label: "No vacuum at home",
+    icon: "🧹",
+    price: 50,
+    max: 1,
+    group: "supplies",
+  },
+  {
+    id: "no_products",
+    label: "No cleaning products at home",
+    icon: "🧴",
+    price: 30,
+    max: 1,
+    group: "supplies",
+  },
+  { id: "oven", label: "Inside oven", icon: "🔥", price: 30, group: "addons" },
+  {
+    id: "fridge",
+    label: "Inside fridge",
+    icon: "🌬️",
+    price: 20,
+    group: "addons",
+  },
+  {
+    id: "dishwasher",
+    label: "Inside dishwasher",
+    icon: "🧼",
+    price: 20,
+    group: "addons",
+  },
+  {
+    id: "microwave",
+    label: "Inside microwave",
+    icon: "🍽️",
+    price: 20,
+    group: "addons",
+  },
+  {
+    id: "cabinets",
+    label: "Inside cabinets",
+    icon: "🚪",
+    price: 10,
+    group: "addons",
+  },
+  {
+    id: "windows",
+    label: "Inside windows",
+    icon: "🪟",
+    price: 10,
+    group: "addons",
+  },
+  { id: "blinds", label: "Blinds", icon: "✨", price: 20, group: "addons" },
+  { id: "balcony", label: "Balcony", icon: "🌿", price: 40, group: "addons" },
+  {
+    id: "laundry",
+    label: "In-house laundry",
+    icon: "👕",
+    price: 30,
+    group: "addons",
+  },
+  { id: "ironing", label: "Ironing", icon: "👔", price: 25, group: "addons" },
+  {
+    id: "walls",
+    label: "Wall wipe-down",
+    icon: "🧱",
+    price: 30,
+    group: "addons",
+  },
+  { id: "stairs", label: "Stairs", icon: "🪜", price: 20, group: "addons" },
+  {
+    id: "mold",
+    label: "Bathroom mould treatment",
+    icon: "🦠",
+    price: 50,
+    group: "addons",
+  },
+  {
+    id: "organise",
+    label: "Organisation",
+    icon: "📦",
+    price: 30,
+    group: "addons",
+  },
 ];
 
 export const FREQUENCIES: readonly Frequency[] = [
-  { id: "one-time", name: "One-time", discount: 0 },
-  { id: "monthly", name: "Monthly", discount: 0.05 },
-  { id: "biweekly", name: "Every 2 weeks", discount: 0.1 },
-  { id: "weekly", name: "Weekly", discount: 0.15 },
+  {
+    id: "once",
+    label: "One-time",
+    discount: 0,
+    subLabel: "No commitment",
+    effectiveRate: 44,
+  },
+  {
+    id: "monthly",
+    label: "Monthly",
+    discount: 0.05,
+    subLabel: "Save 5%",
+    effectiveRate: 42,
+  },
+  {
+    id: "biweekly",
+    label: "Bi-weekly",
+    discount: 0.1,
+    subLabel: "Save 10% · €40/hr",
+    effectiveRate: 40,
+  },
+  {
+    id: "weekly",
+    label: "Weekly",
+    discount: 0.15,
+    subLabel: "Save 15% · €36/hr · Best value",
+    effectiveRate: 36,
+  },
 ];
 
 export type BookingState = {
   serviceId: ServiceId | null;
-  hours: number;
-  addons: Partial<Record<AddonId, number>>;
+  home: {
+    beds: number;
+    baths: number;
+    size: string;
+    type: HomeType;
+  };
+  extras: Record<string, number>;
   frequencyId: FrequencyId;
-  date: string;
-  time: string;
-  postcode: string;
-  name: string;
-  notes: string;
+  contact: {
+    name: string;
+    phone: string;
+    email: string;
+    address: string;
+    postalCode: string;
+  };
+  preferredDate: string;
+  preferredTime: string;
+  notesCleaner: string;
+  notesOffice: string;
 };
 
 export const defaultBookingState: BookingState = {
   serviceId: null,
-  hours: 2,
-  addons: {},
-  frequencyId: "one-time",
-  date: "",
-  time: "",
-  postcode: "",
-  name: "",
-  notes: "",
+  home: { beds: 1, baths: 1, size: "", type: "apartment" },
+  extras: {},
+  frequencyId: "once",
+  contact: {
+    name: "",
+    phone: "+31 ",
+    email: "",
+    address: "",
+    postalCode: "",
+  },
+  preferredDate: "",
+  preferredTime: "",
+  notesCleaner: "",
+  notesOffice: "",
 };
 
 export const getService = (id: ServiceId | null): Service | undefined =>
@@ -133,64 +263,88 @@ export const getService = (id: ServiceId | null): Service | undefined =>
 export const getFrequency = (id: FrequencyId): Frequency =>
   FREQUENCIES.find((f) => f.id === id) ?? FREQUENCIES[0];
 
-export const getAddon = (id: AddonId): Addon | undefined =>
-  ADDONS.find((a) => a.id === id);
+export const getExtra = (id: string): Extra | undefined =>
+  EXTRAS.find((e) => e.id === id);
 
-export type AddonLine = { addon: Addon; qty: number; line: number };
+export function estimateHours(
+  beds: number,
+  baths: number,
+  serviceId: ServiceId | null,
+): number {
+  const base =
+    serviceId === "builders"
+      ? 4
+      : serviceId === "deep" ||
+          serviceId === "movein" ||
+          serviceId === "moveout"
+        ? 3
+        : 2;
+
+  const multiplier =
+    serviceId === "builders"
+      ? 1.6
+      : serviceId === "movein" || serviceId === "moveout"
+        ? 1.4
+        : serviceId === "deep"
+          ? 1.3
+          : 1.0;
+
+  const extra =
+    Math.max(0, beds - 1) * 0.5 + Math.max(0, baths - 1) * 0.5;
+
+  const raw = (base + extra) * multiplier;
+  const rounded = Math.round(raw * 2) / 2;
+  return Math.max(base, rounded);
+}
+
+export type AddonLine = { extra: Extra; qty: number; line: number };
 
 export type PriceBreakdown = {
   service: Service | undefined;
   frequency: Frequency;
-  rate: number;
-  hoursTotal: number;
+  hours: number;
+  baseRate: number;
+  labor: number;
+  laborAfterDiscount: number;
+  laborSaved: number;
   addonLines: AddonLine[];
-  addonsTotal: number;
+  extrasTotal: number;
   subtotal: number;
-  discount: number;
-  total: number;
 };
 
-export function effectiveRate(
-  service: Service | undefined,
-  frequency: Frequency,
-): number {
-  if (!service) return 0;
-  if (service.id === "recurring" && frequency.id !== "one-time") return 36;
-  return service.rate;
-}
-
-export function computePrice(state: BookingState): PriceBreakdown {
+export function calcTotal(state: BookingState): PriceBreakdown {
   const service = getService(state.serviceId);
   const frequency = getFrequency(state.frequencyId);
-  const rate = effectiveRate(service, frequency);
-  const hoursTotal = rate * state.hours;
+  const hours = service
+    ? estimateHours(state.home.beds, state.home.baths, state.serviceId)
+    : 0;
+  const baseRate = service?.baseRate ?? BASE_RATE;
+  const labor = baseRate * hours;
+  const laborAfterDiscount = labor * (1 - frequency.discount);
+  const laborSaved = labor - laborAfterDiscount;
 
-  const addonLines: AddonLine[] = (
-    Object.entries(state.addons) as [AddonId, number | undefined][]
-  )
+  const addonLines: AddonLine[] = Object.entries(state.extras)
     .map(([id, qty]) => {
-      const addon = getAddon(id);
-      if (!addon || !qty || qty <= 0) return null;
-      return { addon, qty, line: addon.price * qty };
+      const extra = getExtra(id);
+      if (!extra || !qty || qty <= 0) return null;
+      return { extra, qty, line: extra.price * qty };
     })
-    .filter((x): x is AddonLine => x !== null);
+    .filter((l): l is AddonLine => l !== null);
 
-  const addonsTotal = addonLines.reduce((acc, l) => acc + l.line, 0);
-  const subtotal = hoursTotal + addonsTotal;
-  const applies = service?.allowsFrequency ? frequency.discount : 0;
-  const discount = subtotal * applies;
-  const total = Math.max(0, subtotal - discount);
+  const extrasTotal = addonLines.reduce((acc, l) => acc + l.line, 0);
+  const subtotal = laborAfterDiscount + extrasTotal;
 
   return {
     service,
     frequency,
-    rate,
-    hoursTotal,
+    hours,
+    baseRate,
+    labor,
+    laborAfterDiscount,
+    laborSaved,
     addonLines,
-    addonsTotal,
+    extrasTotal,
     subtotal,
-    discount,
-    total,
   };
 }
 
@@ -199,56 +353,104 @@ export const formatEuro = (n: number): string => {
   return Number.isInteger(rounded) ? `€${rounded}` : `€${rounded.toFixed(2)}`;
 };
 
-export function buildWhatsAppMessage(state: BookingState): string {
-  const price = computePrice(state);
-  const { service, frequency, rate, addonLines, total } = price;
+export const formatHours = (h: number): string =>
+  Number.isInteger(h) ? `${h}h` : `${h.toFixed(1)}h`;
+
+export function buildBookingMessage(state: BookingState): string {
+  const price = calcTotal(state);
+  const { service, frequency, hours, addonLines, subtotal } = price;
 
   if (!service) {
-    return "Hi ExpatCleaners 👋 I'd like to book a cleaning.";
+    return "Hey ExpatCleaners 👋 I'd like to book a clean.";
   }
 
   const lines: string[] = [];
-  lines.push("Hi ExpatCleaners 👋");
+  lines.push("Hey ExpatCleaners — I'd like to book a clean.");
   lines.push("");
-  lines.push("I'd like to book a cleaning:");
-  lines.push("");
-  lines.push(`• Service: ${service.name}`);
-  lines.push(`• Hours: ${state.hours} @ ${formatEuro(rate)}/hr`);
-  if (service.allowsFrequency) {
-    lines.push(`• Frequency: ${frequency.name}`);
-  }
+  lines.push(`• Service: ${service.label}`);
+  lines.push(
+    `• Home: ${state.home.beds} bed / ${state.home.baths} bath / ${state.home.type}`,
+  );
+  if (state.home.size) lines.push(`• Size: ${state.home.size}m²`);
+  lines.push(`• Estimated hours: ${formatHours(hours)}`);
+  lines.push(`• Frequency: ${frequency.label}`);
   if (addonLines.length > 0) {
-    lines.push("• Add-ons:");
-    for (const { addon, qty } of addonLines) {
-      lines.push(`   – ${addon.name}${qty > 1 ? ` ×${qty}` : ""}`);
+    lines.push("• Extras:");
+    for (const { extra, qty } of addonLines) {
+      lines.push(`   – ${extra.label}${qty > 1 ? ` ×${qty}` : ""}`);
     }
   }
-  if (state.date) lines.push(`• Date: ${state.date}`);
-  if (state.time) lines.push(`• Time: ${state.time}`);
-  if (state.postcode) lines.push(`• Postcode: ${state.postcode}`);
-  if (state.name) lines.push(`• Name: ${state.name}`);
-  if (state.notes) lines.push(`• Notes: ${state.notes}`);
+  if (state.preferredDate)
+    lines.push(`• Preferred date: ${state.preferredDate}`);
+  if (state.preferredTime)
+    lines.push(`• Preferred time: ${state.preferredTime}`);
+  if (state.contact.address)
+    lines.push(
+      `• Address: ${state.contact.address}${state.contact.postalCode ? `, ${state.contact.postalCode}` : ""}`,
+    );
+  if (state.contact.name) lines.push(`• Name: ${state.contact.name}`);
+  if (state.contact.phone && state.contact.phone.trim() !== "+31")
+    lines.push(`• Phone: ${state.contact.phone}`);
+  if (state.contact.email) lines.push(`• Email: ${state.contact.email}`);
+  if (state.notesCleaner)
+    lines.push(`• Notes for cleaner: ${state.notesCleaner}`);
+  if (state.notesOffice)
+    lines.push(`• Notes for office: ${state.notesOffice}`);
   lines.push("");
-  lines.push(`Estimated total: ${formatEuro(total)}`);
+  lines.push(`Estimated total: ${formatEuro(subtotal)}`);
+  lines.push("");
+  lines.push("Please let me know availability 🙏");
 
   return lines.join("\n");
 }
 
-export type TrackEvent =
-  | "book_page_view"
-  | "service_selected"
-  | "addon_added"
-  | "frequency_selected"
-  | "whatsapp_click";
+const DRAFT_KEY = "ec_booking_draft";
 
-export function track(event: TrackEvent, data?: Record<string, unknown>): void {
-  if (typeof window === "undefined") return;
-  const w = window as unknown as { dataLayer?: unknown[] };
-  if (Array.isArray(w.dataLayer)) {
-    w.dataLayer.push({ event, ...(data ?? {}) });
-  }
-  if (process.env.NODE_ENV !== "production") {
-    // eslint-disable-next-line no-console
-    console.debug("[track]", event, data ?? {});
+export function loadDraft(): BookingState | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<BookingState>;
+    return {
+      ...defaultBookingState,
+      ...parsed,
+      home: { ...defaultBookingState.home, ...(parsed.home ?? {}) },
+      contact: { ...defaultBookingState.contact, ...(parsed.contact ?? {}) },
+      extras: parsed.extras ?? {},
+    };
+  } catch {
+    return null;
   }
 }
+
+export function saveDraft(state: BookingState): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(DRAFT_KEY, JSON.stringify(state));
+  } catch {
+    /* ignore quota errors */
+  }
+}
+
+export function isBookingReady(state: BookingState): boolean {
+  if (!state.serviceId) return false;
+  if (state.home.beds < 0 || state.home.baths < 1) return false;
+  if (!state.frequencyId) return false;
+  if (!state.contact.name.trim()) return false;
+  const phoneDigits = state.contact.phone.replace(/\D/g, "");
+  if (phoneDigits.length < 9) return false;
+  if (!state.contact.address.trim()) return false;
+  if (!state.contact.postalCode.trim()) return false;
+  if (!state.preferredDate) return false;
+  if (!state.preferredTime) return false;
+  return true;
+}
+
+export const TIME_SLOTS = ["09:00", "12:00", "14:00", "16:00"] as const;
+
+export const HOME_TYPES: { id: HomeType; label: string }[] = [
+  { id: "apartment", label: "Apartment" },
+  { id: "house", label: "House" },
+  { id: "studio", label: "Studio" },
+];

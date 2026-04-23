@@ -10,7 +10,7 @@ export function Navbar() {
   const onBookPage = pathname === "/book";
 
   return (
-    <header className="border-b border-brand-stone/60 bg-brand-cream">
+    <header className="border-b border-brand-hairline bg-brand-cream">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <Link
           href="/"
@@ -23,14 +23,14 @@ export function Navbar() {
             href={whatsappLink()}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-brand-ink/70 transition-colors hover:text-brand-ink"
+            className="text-sm text-brand-graphite transition-colors hover:text-brand-ink"
           >
             WhatsApp us →
           </a>
         ) : (
           <Link
             href="/book"
-            className="inline-flex h-10 items-center justify-center rounded-full bg-brand-ink px-5 text-sm font-medium text-brand-cream transition-colors hover:bg-brand-ink/90"
+            className="inline-flex h-10 items-center justify-center rounded-full bg-brand-terracotta px-5 text-sm font-medium text-white transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_20px_-10px_rgba(232,92,58,0.55)]"
           >
             Book now
           </Link>

@@ -1,463 +1,461 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Check, Minus, Plus } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { BookSummary } from "@/components/book/BookSummary";
-import { cn } from "@/lib/utils";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
+import { motion } from "framer-motion";
+import { MessageCircle } from "lucide-react";
+import { ProgressSteps } from "@/components/booking/ProgressSteps";
+import { StepHome } from "@/components/booking/StepHome";
+import { StepExtrasFrequency } from "@/components/booking/StepExtrasFrequency";
+import { StepContactSlot } from "@/components/booking/StepContactSlot";
+import { SummaryCard } from "@/components/booking/SummaryCard";
 import { whatsappLink } from "@/lib/whatsapp";
 import {
-  ADDONS,
-  FREQUENCIES,
-  SERVICES,
-  buildWhatsAppMessage,
-  computePrice,
+  buildBookingMessage,
+  calcTotal,
   defaultBookingState,
-  formatEuro,
-  track,
-  type AddonId,
+  isBookingReady,
+  loadDraft,
+  saveDraft,
   type BookingState,
   type FrequencyId,
   type ServiceId,
 } from "@/lib/booking";
 
-const HOURS_MAX = 12;
+type Action =
+  | { type: "hydrate"; payload: BookingState }
+  | { type: "setService"; id: ServiceId }
+  | { type: "setHome"; patch: Partial<BookingState["home"]> }
+  | { type: "setExtra"; id: string; qty: number }
+  | { type: "setFrequency"; id: FrequencyId }
+  | { type: "setContact"; patch: Partial<BookingState["contact"]> }
+  | { type: "setDate"; date: string }
+  | { type: "setTime"; time: string }
+  | { type: "setNotes"; field: "cleaner" | "office"; value: string };
+
+function reducer(state: BookingState, action: Action): BookingState {
+  switch (action.type) {
+    case "hydrate":
+      return action.payload;
+    case "setService":
+      return { ...state, serviceId: action.id };
+    case "setHome":
+      return { ...state, home: { ...state.home, ...action.patch } };
+    case "setExtra": {
+      const next = { ...state.extras };
+      if (action.qty <= 0) delete next[action.id];
+      else next[action.id] = action.qty;
+      return { ...state, extras: next };
+    }
+    case "setFrequency":
+      return { ...state, frequencyId: action.id };
+    case "setContact":
+      return { ...state, contact: { ...state.contact, ...action.patch } };
+    case "setDate":
+      return { ...state, preferredDate: action.date };
+    case "setTime":
+      return { ...state, preferredTime: action.time };
+    case "setNotes":
+      return action.field === "cleaner"
+        ? { ...state, notesCleaner: action.value }
+        : { ...state, notesOffice: action.value };
+  }
+}
+
+const sectionMotion = {
+  initial: { opacity: 0, y: 16 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: "-80px" },
+  transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] as const },
+};
 
 export default function BookPage() {
-  const [state, setState] = useState<BookingState>(defaultBookingState);
+  const [state, dispatch] = useReducer(reducer, defaultBookingState);
+  const [hydrated, setHydrated] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const [activeStep, setActiveStep] = useState(1);
+
+  const step1Ref = useRef<HTMLDivElement>(null);
+  const step2Ref = useRef<HTMLDivElement>(null);
+  const step3Ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    track("book_page_view");
+    const draft = loadDraft();
+    if (draft) dispatch({ type: "hydrate", payload: draft });
+    setHydrated(true);
   }, []);
 
-  const price = useMemo(() => computePrice(state), [state]);
-  const service = price.service;
-  const minHours = service?.minHours ?? 1;
-  const canContinue = !!service;
+  useEffect(() => {
+    if (hydrated) saveDraft(state);
+  }, [state, hydrated]);
+
+  const price = useMemo(() => calcTotal(state), [state]);
+  const ready = isBookingReady(state);
+
+  const step1Done = !!state.serviceId;
+  const step2Done = step1Done && !!state.frequencyId;
+  const step3Done = ready;
+
+  useEffect(() => {
+    const observers: IntersectionObserver[] = [];
+    const sections: [HTMLDivElement | null, number][] = [
+      [step1Ref.current, 1],
+      [step2Ref.current, 2],
+      [step3Ref.current, 3],
+    ];
+    sections.forEach(([node, id]) => {
+      if (!node) return;
+      const obs = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) setActiveStep(id);
+          });
+        },
+        { rootMargin: "-40% 0px -40% 0px" },
+      );
+      obs.observe(node);
+      observers.push(obs);
+    });
+    return () => observers.forEach((o) => o.disconnect());
+  }, []);
+
+  const scrollToStep = useCallback((id: number) => {
+    const map: Record<number, React.RefObject<HTMLDivElement | null>> = {
+      1: step1Ref,
+      2: step2Ref,
+      3: step3Ref,
+    };
+    const node = map[id]?.current;
+    if (!node) return;
+    const top = node.getBoundingClientRect().top + window.scrollY - 96;
+    window.scrollTo({ top, behavior: "smooth" });
+  }, []);
+
+  const onService = useCallback(
+    (id: ServiceId) => {
+      dispatch({ type: "setService", id });
+      setTimeout(() => scrollToStep(2), 450);
+    },
+    [scrollToStep],
+  );
+
+  const onHome = useCallback(
+    (patch: Partial<BookingState["home"]>) =>
+      dispatch({ type: "setHome", patch }),
+    [],
+  );
+  const onExtra = useCallback(
+    (id: string, qty: number) => dispatch({ type: "setExtra", id, qty }),
+    [],
+  );
+  const onFrequency = useCallback(
+    (id: FrequencyId) => dispatch({ type: "setFrequency", id }),
+    [],
+  );
+  const onContact = useCallback(
+    (patch: Partial<BookingState["contact"]>) =>
+      dispatch({ type: "setContact", patch }),
+    [],
+  );
+  const onDate = useCallback(
+    (date: string) => dispatch({ type: "setDate", date }),
+    [],
+  );
+  const onTime = useCallback(
+    (time: string) => dispatch({ type: "setTime", time }),
+    [],
+  );
+  const onNotes = useCallback(
+    (field: "cleaner" | "office", value: string) =>
+      dispatch({ type: "setNotes", field, value }),
+    [],
+  );
 
   const waHref = useMemo(
-    () => whatsappLink(buildWhatsAppMessage(state)),
+    () => whatsappLink(buildBookingMessage(state)),
     [state],
   );
 
-  const pickService = (id: ServiceId) => {
-    setState((s) => {
-      const next: BookingState = { ...s, serviceId: id };
-      const chosen = SERVICES.find((x) => x.id === id);
-      if (!chosen) return next;
-      if (s.hours < chosen.minHours) next.hours = chosen.minHours;
-      if (!chosen.allowsFrequency) {
-        next.frequencyId = "one-time";
-      } else if (s.frequencyId === "one-time") {
-        next.frequencyId = "weekly";
-      }
-      return next;
-    });
-    track("service_selected", { id });
-  };
+  const handleWhatsApp = useCallback(() => {
+    saveDraft(state);
+  }, [state]);
 
-  const setHours = (h: number) => {
-    const clamped = Math.max(minHours, Math.min(HOURS_MAX, h));
-    setState((s) => ({ ...s, hours: clamped }));
-  };
+  const handleSendRequest = useCallback(async () => {
+    if (!ready || sending) return;
+    setSending(true);
+    try {
+      const res = await fetch("/api/book", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(state),
+      });
+      if (!res.ok) throw new Error("Request failed");
+      setToast("Request sent. We'll reply shortly.");
+    } catch {
+      setToast("Couldn't send — please try WhatsApp.");
+    } finally {
+      setSending(false);
+      setTimeout(() => setToast(null), 4000);
+    }
+  }, [ready, sending, state]);
 
-  const setAddon = (id: AddonId, qty: number) => {
-    setState((s) => {
-      const was = s.addons[id] ?? 0;
-      const next = { ...s.addons };
-      if (qty <= 0) delete next[id];
-      else next[id] = qty;
-      if (was === 0 && qty > 0) track("addon_added", { id, qty });
-      return { ...s, addons: next };
-    });
-  };
-
-  const setFrequency = (id: FrequencyId) => {
-    setState((s) => ({ ...s, frequencyId: id }));
-    track("frequency_selected", { id });
-  };
-
-  const update = <K extends keyof BookingState>(
-    key: K,
-    value: BookingState[K],
-  ) => setState((s) => ({ ...s, [key]: value }));
-
-  const onWhatsApp = () => {
-    track("whatsapp_click", {
-      total: price.total,
-      service: service?.id,
-      frequency: price.frequency.id,
-    });
-  };
-
-  const today = new Date().toISOString().slice(0, 10);
-  const scheduleStep = service?.allowsFrequency ? 5 : 4;
-  const detailsStep = service?.allowsFrequency ? 6 : 5;
+  const progressSteps = [
+    { id: 1, label: "Home details", complete: step1Done },
+    { id: 2, label: "Extras & frequency", complete: step2Done },
+    { id: 3, label: "Contact & slot", complete: step3Done },
+  ];
 
   return (
     <div className="min-h-screen bg-brand-cream text-brand-ink">
-      <div className="mx-auto max-w-6xl px-4 pt-12 pb-6 md:pt-16">
-        <h1 className="font-display text-4xl md:text-5xl tracking-tight">
-          Book your cleaning
+      <div className="mx-auto max-w-6xl px-4 pt-12 pb-6 md:pt-20">
+        <p className="text-xs uppercase tracking-[0.22em] text-brand-graphite">
+          Book a clean
+        </p>
+        <h1 className="mt-3 font-display text-4xl tracking-tight md:text-6xl">
+          A clean home, three minutes from here.
         </h1>
-        <p className="mt-3 max-w-xl text-brand-ink/70">
-          Pick your service, see your price, finish in WhatsApp. No sign-up.
+        <p className="mt-4 max-w-xl text-base text-brand-graphite md:text-lg">
+          Tell us about your place, pick a time, finish on WhatsApp. No
+          sign-up. No card. Pay after the clean.
         </p>
       </div>
 
-      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 pb-36 lg:grid-cols-[1fr_380px] lg:gap-10 lg:pb-16">
-        <div className="space-y-10">
-          <Step number={1} title="Choose your service">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {SERVICES.map((s) => {
-                const selected = state.serviceId === s.id;
-                return (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => pickService(s.id)}
-                    aria-pressed={selected}
-                    className={cn(
-                      "group rounded-xl border p-4 text-left transition-colors",
-                      selected
-                        ? "border-brand-ink bg-white shadow-sm"
-                        : "border-brand-stone bg-white/70 hover:border-brand-ink/40 hover:bg-white",
-                    )}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="font-medium text-brand-ink">
-                          {s.name}
-                        </div>
-                        <div className="mt-1 text-sm text-brand-ink/60">
-                          {s.description}
-                        </div>
-                      </div>
-                      <span
-                        aria-hidden
-                        className={cn(
-                          "grid h-6 w-6 shrink-0 place-items-center rounded-full border transition-colors",
-                          selected
-                            ? "border-brand-ink bg-brand-ink text-brand-cream"
-                            : "border-brand-stone text-transparent",
-                        )}
-                      >
-                        <Check className="h-3.5 w-3.5" />
-                      </span>
-                    </div>
-                    <div className="mt-3 text-sm text-brand-ink/70">
-                      From {formatEuro(s.rate)}/hr · min {s.minHours}h
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </Step>
+      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-4 pb-40 lg:grid-cols-[220px_1fr_380px] lg:gap-12 lg:pb-16">
+        <div className="hidden lg:block">
+          <div className="sticky top-24">
+            <ProgressSteps
+              steps={progressSteps}
+              active={activeStep}
+              onJump={scrollToStep}
+            />
+            <a
+              href={whatsappLink()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-8 inline-flex items-center gap-2 text-sm text-brand-graphite transition-colors hover:text-brand-ink"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Rather just chat?
+            </a>
+          </div>
+        </div>
 
-          <Step number={2} title="How many hours?">
-            <div className="flex items-center gap-4">
-              <StepperButton
-                onClick={() => setHours(state.hours - 1)}
-                disabled={!service || state.hours <= minHours}
-                label="Decrease hours"
-              >
-                <Minus className="h-4 w-4" />
-              </StepperButton>
-              <div className="min-w-[84px] text-center">
-                <div className="font-display text-3xl tabular-nums">
-                  {state.hours}
-                </div>
-                <div className="text-xs text-brand-ink/50">hours</div>
-              </div>
-              <StepperButton
-                onClick={() => setHours(state.hours + 1)}
-                disabled={!service || state.hours >= HOURS_MAX}
-                label="Increase hours"
-              >
-                <Plus className="h-4 w-4" />
-              </StepperButton>
-              {service && (
-                <span className="ml-2 text-sm text-brand-ink/55">
-                  Minimum {minHours}h for {service.name.toLowerCase()}
-                </span>
-              )}
-            </div>
-          </Step>
+        <div className="space-y-16 md:space-y-20">
+          <motion.section
+            id="step-1"
+            ref={step1Ref}
+            {...sectionMotion}
+            className="scroll-mt-24"
+          >
+            <StepHeader number={1} title="Home details" />
+            <StepHome
+              state={state}
+              onService={onService}
+              onHome={onHome}
+            />
+          </motion.section>
 
-          <Step number={3} title="Add extras">
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {ADDONS.map((a) => {
-                const qty = state.addons[a.id] ?? 0;
-                const active = qty > 0;
-                return (
-                  <div
-                    key={a.id}
-                    className={cn(
-                      "flex items-center justify-between gap-3 rounded-lg border bg-white px-4 py-3 transition-colors",
-                      active ? "border-brand-ink" : "border-brand-stone",
-                    )}
-                  >
-                    <div className="min-w-0">
-                      <div className="text-sm font-medium text-brand-ink">
-                        {a.name}
-                      </div>
-                      <div className="text-xs text-brand-ink/55">
-                        +{formatEuro(a.price)}
-                      </div>
-                    </div>
-                    {active ? (
-                      <div className="flex items-center gap-2">
-                        <StepperButton
-                          small
-                          onClick={() => setAddon(a.id, qty - 1)}
-                          label={`Decrease ${a.name}`}
-                        >
-                          <Minus className="h-3 w-3" />
-                        </StepperButton>
-                        <span className="w-6 text-center text-sm tabular-nums">
-                          {qty}
-                        </span>
-                        <StepperButton
-                          small
-                          onClick={() => setAddon(a.id, qty + 1)}
-                          label={`Increase ${a.name}`}
-                        >
-                          <Plus className="h-3 w-3" />
-                        </StepperButton>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setAddon(a.id, 1)}
-                        className="text-sm font-medium text-brand-ink/70 hover:text-brand-ink"
-                      >
-                        Add
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </Step>
+          <motion.section
+            id="step-2"
+            ref={step2Ref}
+            {...sectionMotion}
+            className="scroll-mt-24"
+          >
+            <StepHeader number={2} title="Extras & frequency" />
+            <StepExtrasFrequency
+              state={state}
+              onExtra={onExtra}
+              onFrequency={onFrequency}
+            />
+          </motion.section>
 
-          {service?.allowsFrequency && (
-            <Step number={4} title="How often?">
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {FREQUENCIES.map((f) => {
-                  const selected = state.frequencyId === f.id;
-                  return (
-                    <button
-                      key={f.id}
-                      type="button"
-                      onClick={() => setFrequency(f.id)}
-                      aria-pressed={selected}
-                      className={cn(
-                        "rounded-lg border bg-white px-3 py-3 text-center transition-colors",
-                        selected
-                          ? "border-brand-ink"
-                          : "border-brand-stone hover:border-brand-ink/40",
-                      )}
-                    >
-                      <div className="text-sm font-medium text-brand-ink">
-                        {f.name}
-                      </div>
-                      {f.discount > 0 && (
-                        <div className="mt-0.5 text-xs text-brand-sage">
-                          −{Math.round(f.discount * 100)}%
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </Step>
-          )}
+          <motion.section
+            id="step-3"
+            ref={step3Ref}
+            {...sectionMotion}
+            className="scroll-mt-24"
+          >
+            <StepHeader number={3} title="Contact & preferred slot" />
+            <StepContactSlot
+              state={state}
+              onContact={onContact}
+              onDate={onDate}
+              onTime={onTime}
+              onNotes={onNotes}
+            />
+          </motion.section>
 
-          <Step number={scheduleStep} title="When?">
-            <div className="grid max-w-md grid-cols-2 gap-3">
-              <div>
-                <Label
-                  htmlFor="date"
-                  className="mb-1.5 block text-sm text-brand-ink/70"
-                >
-                  Date
-                </Label>
-                <Input
-                  id="date"
-                  type="date"
-                  min={today}
-                  value={state.date}
-                  onChange={(e) => update("date", e.target.value)}
-                  className="bg-white"
-                />
-              </div>
-              <div>
-                <Label
-                  htmlFor="time"
-                  className="mb-1.5 block text-sm text-brand-ink/70"
-                >
-                  Time
-                </Label>
-                <Input
-                  id="time"
-                  type="time"
-                  value={state.time}
-                  onChange={(e) => update("time", e.target.value)}
-                  className="bg-white"
-                />
-              </div>
-            </div>
-          </Step>
-
-          <Step number={detailsStep} title="Your details">
-            <div className="grid max-w-xl grid-cols-1 gap-3 sm:grid-cols-2">
-              <div>
-                <Label
-                  htmlFor="name"
-                  className="mb-1.5 block text-sm text-brand-ink/70"
-                >
-                  Name
-                </Label>
-                <Input
-                  id="name"
-                  value={state.name}
-                  onChange={(e) => update("name", e.target.value)}
-                  placeholder="Your name"
-                  className="bg-white"
-                />
-              </div>
-              <div>
-                <Label
-                  htmlFor="postcode"
-                  className="mb-1.5 block text-sm text-brand-ink/70"
-                >
-                  Postcode
-                </Label>
-                <Input
-                  id="postcode"
-                  value={state.postcode}
-                  onChange={(e) => update("postcode", e.target.value)}
-                  placeholder="1012 AB"
-                  className="bg-white"
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <Label
-                  htmlFor="notes"
-                  className="mb-1.5 block text-sm text-brand-ink/70"
-                >
-                  Notes (optional)
-                </Label>
-                <Textarea
-                  id="notes"
-                  value={state.notes}
-                  onChange={(e) => update("notes", e.target.value)}
-                  placeholder="Parking, pets, access instructions…"
-                  rows={3}
-                  className="bg-white"
-                />
-              </div>
-            </div>
-          </Step>
+          <div className="pt-4 text-center">
+            <a
+              href={whatsappLink()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm text-brand-graphite transition-colors hover:text-brand-ink"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Rather just chat? WhatsApp us →
+            </a>
+          </div>
         </div>
 
         <div className="hidden lg:block">
-          <div className="sticky top-6">
-            <BookSummary
+          <div className="sticky top-24">
+            <SummaryCard
               price={price}
               state={state}
+              ready={ready}
               waHref={waHref}
-              canContinue={canContinue}
-              onContinue={onWhatsApp}
+              onWhatsApp={handleWhatsApp}
+              onSendRequest={handleSendRequest}
+              sending={sending}
             />
           </div>
         </div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-brand-stone bg-white/95 backdrop-blur lg:hidden">
+      <MobileSummaryBar
+        price={price}
+        state={state}
+        ready={ready}
+        waHref={waHref}
+        onWhatsApp={handleWhatsApp}
+        onSendRequest={handleSendRequest}
+        sending={sending}
+      />
+
+      {toast && (
+        <motion.div
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 30, opacity: 0 }}
+          className="pointer-events-none fixed inset-x-0 bottom-24 z-40 mx-auto w-max max-w-[calc(100vw-2rem)] rounded-full bg-brand-ink px-5 py-3 text-sm text-brand-cream shadow-lg lg:bottom-6"
+        >
+          {toast}
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
+function StepHeader({ number, title }: { number: number; title: string }) {
+  return (
+    <div className="mb-6 flex items-baseline gap-3">
+      <span className="font-display text-sm tabular-nums text-brand-terracotta">
+        {String(number).padStart(2, "0")}
+      </span>
+      <h2 className="font-display text-3xl tracking-tight text-brand-ink md:text-4xl">
+        {title}
+      </h2>
+    </div>
+  );
+}
+
+function MobileSummaryBar({
+  price,
+  state,
+  ready,
+  waHref,
+  onWhatsApp,
+  onSendRequest,
+  sending,
+}: {
+  price: ReturnType<typeof calcTotal>;
+  state: BookingState;
+  ready: boolean;
+  waHref: string;
+  onWhatsApp: () => void;
+  onSendRequest: () => void;
+  sending: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-brand-hairline bg-white/95 backdrop-blur lg:hidden">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-          <div>
-            <div className="text-xs text-brand-ink/55">Estimated total</div>
-            <div className="font-display text-xl tabular-nums">
-              {canContinue ? formatEuro(price.total) : "—"}
-            </div>
-          </div>
-          {canContinue ? (
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="flex flex-col items-start"
+          >
+            <span className="text-xs text-brand-graphite">Estimated total</span>
+            <motion.span
+              key={price.subtotal}
+              initial={{ scale: 1.06 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.25 }}
+              className="font-display text-xl tabular-nums text-brand-ink"
+            >
+              {price.service
+                ? `€${Math.round(price.subtotal)}`
+                : "—"}
+            </motion.span>
+          </button>
+          {ready ? (
             <a
               href={waHref}
               onClick={onWhatsApp}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-12 items-center justify-center rounded-full bg-brand-ink px-5 text-sm font-medium text-brand-cream transition-colors hover:bg-brand-ink/90"
+              className="inline-flex h-12 items-center justify-center rounded-full bg-brand-terracotta px-5 text-sm font-medium text-white shadow-[0_6px_20px_-10px_rgba(232,92,58,0.6)]"
             >
               Continue on WhatsApp
             </a>
           ) : (
             <button
               type="button"
-              disabled
-              className="inline-flex h-12 cursor-not-allowed items-center justify-center rounded-full bg-brand-ink px-5 text-sm font-medium text-brand-cream opacity-50"
+              onClick={() => setOpen(true)}
+              className="inline-flex h-12 items-center justify-center rounded-full bg-brand-ink px-5 text-sm font-medium text-brand-cream"
             >
-              Pick a service
+              Review & book
             </button>
           )}
         </div>
       </div>
-    </div>
-  );
-}
 
-function Step({
-  number,
-  title,
-  children,
-}: {
-  number: number;
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section>
-      <div className="mb-4 flex items-baseline gap-3">
-        <span className="text-xs uppercase tracking-[0.18em] text-brand-ink/40">
-          Step {number}
-        </span>
-        <h2 className="font-display text-2xl tracking-tight text-brand-ink md:text-[28px]">
-          {title}
-        </h2>
-      </div>
-      {children}
-    </section>
-  );
-}
-
-function StepperButton({
-  onClick,
-  disabled,
-  label,
-  small,
-  children,
-}: {
-  onClick: () => void;
-  disabled?: boolean;
-  label: string;
-  small?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={label}
-      className={cn(
-        "grid place-items-center rounded-full border border-brand-stone bg-white transition-colors hover:border-brand-ink/40 disabled:cursor-not-allowed disabled:opacity-40",
-        small ? "h-8 w-8" : "h-11 w-11",
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-40 bg-brand-ink/40 lg:hidden"
+          onClick={() => setOpen(false)}
+        >
+          <motion.div
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", damping: 30, stiffness: 260 }}
+            onClick={(e) => e.stopPropagation()}
+            className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-3xl bg-brand-cream p-4 pb-6"
+          >
+            <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-brand-hairline" />
+            <SummaryCard
+              compact
+              price={price}
+              state={state}
+              ready={ready}
+              waHref={waHref}
+              onWhatsApp={() => {
+                onWhatsApp();
+                setOpen(false);
+              }}
+              onSendRequest={() => {
+                onSendRequest();
+                setOpen(false);
+              }}
+              sending={sending}
+            />
+          </motion.div>
+        </motion.div>
       )}
-    >
-      {children}
-    </button>
+    </>
   );
 }

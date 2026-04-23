@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Fraunces } from "next/font/google";
+import { Instrument_Sans, Fraunces } from "next/font/google";
 import "./globals.css";
 import { BUSINESS } from "@/lib/constants";
 import { Navbar } from "@/components/layout/Navbar";
 
-const geistSans = Geist({
+const instrumentSans = Instrument_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const fraunces = Fraunces({
   variable: "--font-display",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -27,7 +29,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${fraunces.variable} h-full antialiased`}
+      className={`${instrumentSans.variable} ${fraunces.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Navbar />
