@@ -10,7 +10,7 @@ const LINKS = [
   { href: "/#services", label: "Services" },
   { href: "/#approach", label: "Approach" },
   { href: "/#pricing", label: "Pricing" },
-  { href: "#", label: "Journal" },
+  // { href: "/journal", label: "Journal" }, // TODO: re-enable once a post exists
 ] as const;
 
 export function Nav() {
