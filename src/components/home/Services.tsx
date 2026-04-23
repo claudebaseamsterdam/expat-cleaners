@@ -56,7 +56,7 @@ const TENANCY_WHATSAPP = `https://wa.me/${BRAND.whatsappNumber}?text=${encodeURI
 
 export function Services() {
   return (
-    <section id="services" className="bg-brand-bg py-24 md:py-44">
+    <section id="services" className="bg-brand-bg py-28 md:py-48">
       <div className="mx-auto max-w-[1280px] px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

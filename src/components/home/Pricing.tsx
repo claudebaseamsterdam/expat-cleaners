@@ -13,7 +13,7 @@ const ROWS = [
 
 export function Pricing() {
   return (
-    <section id="pricing" className="bg-brand-bg-alt py-24 md:py-40">
+    <section id="pricing" className="bg-brand-bg-alt py-24 md:py-32">
       <div className="mx-auto max-w-[1040px] px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
