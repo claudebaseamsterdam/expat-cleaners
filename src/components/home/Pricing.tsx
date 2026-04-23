@@ -47,15 +47,18 @@ export function Pricing() {
           {ROWS.map((r) => (
             <div
               key={r.label}
-              className="grid grid-cols-[1.3fr_1fr_auto] items-baseline gap-6 py-8 md:py-10"
+              className="grid grid-cols-[1fr_auto_auto] items-baseline gap-6 py-6 sm:gap-12 sm:py-8 md:gap-16 md:py-10"
             >
               <div
-                className="font-display text-[clamp(1.5rem,2vw,1.875rem)] tracking-[-0.02em] text-brand-ink"
+                className="text-[1.125rem] tracking-[-0.015em] text-brand-ink md:text-[1.25rem]"
                 style={{ fontWeight: 420 }}
               >
                 {r.label}
               </div>
-              <div className="text-[17px] tabular-nums text-brand-ink-soft md:text-[20px]">
+              <div
+                className="text-right text-[1.125rem] tabular-nums text-brand-ink md:text-[1.25rem]"
+                style={{ fontVariantNumeric: "tabular-nums" }}
+              >
                 {r.price}
               </div>
               <Link
