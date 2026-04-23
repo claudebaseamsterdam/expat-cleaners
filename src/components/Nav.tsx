@@ -26,7 +26,7 @@ export function Nav() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 w-full transition-all duration-500",
+        "sticky top-0 z-50 w-full transition-all duration-500",
         scrolled
           ? "border-b border-brand-hairline bg-brand-cream/80 backdrop-blur-xl"
           : "border-b border-transparent bg-brand-cream/0",

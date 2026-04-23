@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowUpRight, Home, MessageCircle } from "lucide-react";
+import WhatsAppFloat from "@/components/WhatsAppFloat";
 import { whatsappLink } from "@/lib/whatsapp";
 import {
   buildConfirmedMessage,
@@ -150,6 +151,7 @@ function ConfirmedInner() {
           </Link>
         </motion.div>
       </div>
+      <WhatsAppFloat />
     </div>
   );
 }

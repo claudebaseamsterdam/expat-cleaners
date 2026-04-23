@@ -4,7 +4,6 @@ import "./globals.css";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { UrgencyBar } from "@/components/UrgencyBar";
-import { WhatsAppFloat } from "@/components/WhatsAppFloat";
 
 const instrumentSans = Instrument_Sans({
   variable: "--font-sans",
@@ -47,7 +46,6 @@ export default function RootLayout({
         <Nav />
         <main className="flex-1">{children}</main>
         <Footer />
-        <WhatsAppFloat />
       </body>
     </html>
   );

@@ -20,6 +20,7 @@ import { StepFrequency } from "@/components/booking/StepFrequency";
 import { StepDateTime } from "@/components/booking/StepDateTime";
 import { StepNotes } from "@/components/booking/StepNotes";
 import { SummaryCard } from "@/components/booking/SummaryCard";
+import WhatsAppFloat from "@/components/WhatsAppFloat";
 import { WHATSAPP_URL } from "@/lib/constants";
 import { whatsappLink } from "@/lib/whatsapp";
 import {
@@ -103,6 +104,7 @@ export default function BookPage() {
   const [hydrated, setHydrated] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [activeStep, setActiveStep] = useState(1);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const refs = {
     1: useRef<HTMLDivElement>(null),
@@ -379,7 +381,11 @@ export default function BookPage() {
         onConfirm={handleConfirm}
         onWhatsApp={() => saveDraft(state)}
         onCoupon={(code) => dispatch({ type: "coupon", code })}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
       />
+
+      <WhatsAppFloat variant="booking" hidden={drawerOpen} />
     </div>
   );
 }
@@ -425,16 +431,18 @@ function MobileSummaryBar(props: {
   onConfirm: () => void;
   onWhatsApp: () => void;
   onCoupon: (code: string) => void;
+  open: boolean;
+  onOpenChange: (next: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const { open, onOpenChange, ...summaryProps } = props;
 
   return (
     <>
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-brand-hairline bg-brand-cream/95 backdrop-blur lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-brand-hairline bg-brand-cream/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
           <button
             type="button"
-            onClick={() => setOpen(true)}
+            onClick={() => onOpenChange(true)}
             className="flex flex-col items-start"
           >
             <span className="text-xs text-brand-graphite">
@@ -465,7 +473,7 @@ function MobileSummaryBar(props: {
           ) : (
             <button
               type="button"
-              onClick={() => setOpen(true)}
+              onClick={() => onOpenChange(true)}
               className="inline-flex h-12 items-center justify-center rounded-full bg-brand-ink px-5 text-sm font-medium text-brand-cream"
             >
               Review & book
@@ -479,18 +487,18 @@ function MobileSummaryBar(props: {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={() => setOpen(false)}
-          className="fixed inset-0 z-40 bg-brand-ink/40 lg:hidden"
+          onClick={() => onOpenChange(false)}
+          className="fixed inset-0 z-[60] bg-brand-ink/40 lg:hidden"
         >
           <motion.div
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             transition={{ type: "spring", damping: 30, stiffness: 260 }}
             onClick={(e) => e.stopPropagation()}
-            className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-3xl bg-brand-cream p-4 pb-8"
+            className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-3xl bg-brand-cream p-4 pb-[calc(env(safe-area-inset-bottom)+2rem)]"
           >
             <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-brand-hairline" />
-            <SummaryCard compact {...props} />
+            <SummaryCard compact {...summaryProps} />
           </motion.div>
         </motion.div>
       )}

@@ -5,6 +5,7 @@ import { Services } from "@/components/home/Services";
 import { Pricing } from "@/components/home/Pricing";
 import { Reviews } from "@/components/home/Reviews";
 import { FinalCTA } from "@/components/home/FinalCTA";
+import WhatsAppFloat from "@/components/WhatsAppFloat";
 
 export default function Home() {
   return (
@@ -16,6 +17,7 @@ export default function Home() {
       <Pricing />
       <Reviews />
       <FinalCTA />
+      <WhatsAppFloat />
     </>
   );
 }
