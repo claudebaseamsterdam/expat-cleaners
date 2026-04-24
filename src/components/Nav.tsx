@@ -2,62 +2,92 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Wordmark } from "@/components/Wordmark";
 
 const LINKS = [
   { href: "/#services", label: "Services" },
-  { href: "/#approach", label: "Approach" },
   { href: "/#pricing", label: "Pricing" },
-  // { href: "/journal", label: "Journal" }, // TODO: re-enable once a post exists
+  { href: "/#reviews", label: "Reviews" },
 ] as const;
+
+const THRESHOLD = 80;
 
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const rafId = useRef<number | null>(null);
+  const overHero = pathname === "/" && !scrolled;
 
+  // rAF-throttled scroll listener.
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
-    onScroll();
+    const update = () => {
+      rafId.current = null;
+      setScrolled((prev) => {
+        const next = window.scrollY > THRESHOLD;
+        return prev === next ? prev : next;
+      });
+    };
+    const onScroll = () => {
+      if (rafId.current !== null) return;
+      rafId.current = window.requestAnimationFrame(update);
+    };
+    update();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (rafId.current !== null) cancelAnimationFrame(rafId.current);
+    };
   }, []);
 
+  // Close mobile menu on route change.
   useEffect(() => setOpen(false), [pathname]);
+
+  // Lock body scroll while the mobile overlay menu is open.
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
+  const textColor = overHero ? "text-cream" : "text-ink";
 
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full bg-brand-bg/95 backdrop-blur-[6px] transition-[border-color] duration-300",
+        "fixed top-0 z-50 w-full transition-[background-color,border-color] duration-300",
         scrolled
-          ? "border-b border-brand-line"
-          : "border-b border-transparent",
+          ? "border-b border-stone/20 bg-cream"
+          : "border-b border-transparent bg-transparent",
       )}
     >
-      <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-6 md:h-20">
-        <Link
-          href="/"
-          className="text-[15px] lowercase tracking-[0.02em] text-brand-ink transition-colors duration-200 hover:text-brand-terracotta"
-          style={{ fontWeight: 420 }}
-        >
-          expatcleaners
+      <div className="mx-auto flex h-[72px] max-w-[1280px] items-center justify-between px-6 md:px-8">
+        <Link href="/" aria-label="expatcleaners — home" className="group">
+          <Wordmark
+            className={cn("transition-colors duration-300", textColor)}
+          />
         </Link>
 
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className="hidden items-center gap-9 md:flex">
           {LINKS.map((l) => (
             <Link
-              key={l.href + l.label}
+              key={l.href}
               href={l.href}
-              className="text-[14px] text-brand-ink-soft transition-colors hover:text-brand-ink"
+              className={cn(
+                "text-[14px] font-medium transition-colors duration-300 hover:text-botanical",
+                textColor,
+              )}
             >
               {l.label}
             </Link>
           ))}
           <Link
             href="/book"
-            className="editorial-link text-[14px] text-brand-ink"
+            className="inline-flex h-10 items-center justify-center rounded-full bg-botanical px-5 text-[14px] font-medium text-cream transition-all duration-300 hover:-translate-y-0.5 hover:bg-botanical-hover hover:shadow-[0_8px_22px_-10px_rgba(44,74,62,0.5)]"
           >
             Book
           </Link>
@@ -66,30 +96,37 @@ export function Nav() {
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          aria-label="Toggle menu"
-          className="grid h-10 w-10 place-items-center text-brand-ink md:hidden"
+          aria-label={open ? "Close menu" : "Open menu"}
+          aria-expanded={open}
+          className={cn(
+            "grid h-10 w-10 place-items-center transition-colors duration-300 md:hidden",
+            textColor,
+          )}
         >
-          {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
 
       {open && (
-        <div className="border-t border-brand-line bg-brand-bg md:hidden">
-          <div className="mx-auto flex max-w-[1280px] flex-col gap-1 px-6 py-6">
+        <div className="fixed inset-0 top-[72px] z-40 bg-cream md:hidden">
+          <div className="mx-auto flex max-w-[1280px] flex-col gap-2 px-6 pt-10 pb-12">
             {LINKS.map((l) => (
               <Link
-                key={l.href + l.label}
+                key={l.href}
                 href={l.href}
-                className="py-3 text-[17px] text-brand-ink"
+                onClick={() => setOpen(false)}
+                className="py-3 font-display text-[32px] leading-tight tracking-[-0.01em] text-ink"
+                style={{ fontWeight: 400 }}
               >
                 {l.label}
               </Link>
             ))}
             <Link
               href="/book"
-              className="editorial-link mt-2 py-3 text-[17px] text-brand-ink"
+              onClick={() => setOpen(false)}
+              className="mt-6 inline-flex h-12 w-fit items-center justify-center rounded-full bg-botanical px-7 text-[15px] font-medium text-cream"
             >
-              Book →
+              Book
             </Link>
           </div>
         </div>

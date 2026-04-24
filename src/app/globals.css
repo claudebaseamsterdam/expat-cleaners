@@ -12,34 +12,58 @@
   --font-display: var(--font-display);
   --font-heading: var(--font-display);
 
-  /* Editorial quiet-luxury palette */
-  --color-brand-bg: #f7f5f1;
-  --color-brand-bg-alt: #efebe4;
+  /* ──────────────────────────────────────────────────────────────
+     Typography scale — headlines use --font-display (Fraunces),
+     body + captions use --font-sans (Inter).
+     ────────────────────────────────────────────────────────────── */
+  --text-display-xl: 7.5rem;   /* 120px — hero headline */
+  --text-display-lg: 5rem;     /* 80px — section headlines */
+  --text-display-md: 3.5rem;   /* 56px — pull quotes */
+  --text-display-sm: 2.5rem;   /* 40px — footer hero line */
+  --text-body-lg: 1.25rem;     /* 20px — subheads */
+  --text-body: 1rem;           /* 16px — body */
+  --text-caption: 0.6875rem;   /* 11px — tracked all-caps labels */
+
+  /* ──────────────────────────────────────────────────────────────
+     Core palette — locked design tokens.
+     cream:     page background
+     ink:       primary text
+     botanical: single accent — links, primary buttons, small caps labels
+     stone:     secondary text, dividers
+     whatsapp:  reserved for WhatsApp CTAs only (brand recognition)
+     ────────────────────────────────────────────────────────────── */
+  --color-cream: #f7f4ee;
+  --color-ink: #1a1a1a;
+  --color-botanical: #2c4a3e;
+  --color-botanical-hover: #1f3529;
+  --color-stone: #8b8378;
+  --color-whatsapp: #25d366;
+  --color-whatsapp-hover: #1fb855;
+
+  /* ──────────────────────────────────────────────────────────────
+     Legacy brand-* aliases remapped onto the new palette so the
+     booking UI keeps rendering correctly. Terracotta / sage / amber
+     names are preserved (as aliases) to avoid a token-wide rename of
+     the /book components — they now resolve to botanical where a
+     commercial CTA was needed, and sensible neutrals otherwise.
+     ────────────────────────────────────────────────────────────── */
+  --color-brand-bg: #f7f4ee;
+  --color-brand-bg-alt: #fbf8f1;
   --color-brand-ink: #1a1a1a;
-  --color-brand-ink-soft: #5c5c5c;
-  --color-brand-line: #d9d4cb;
-
-  /* Terracotta brand system — used sparingly: eyebrows, arrow glyphs,
-     primary CTA underlines, hover states. Never as a button fill, never
-     on body copy, never as a section background. */
-  --color-brand-terracotta: #d1694a;
-  --color-brand-terracotta-deep: #b0543a;
-  --color-brand-terracotta-soft: #f2e0d6;
-
-  /* Legacy accent name aliased to terracotta for any residual usage. */
-  --color-brand-accent: #d1694a;
-
-  /* Legacy token names mapped onto the new palette — keeps booking UI
-     rendering correctly without a token-wide rename. */
-  --color-brand-cream: #f7f5f1;
-  --color-brand-linen: #efebe4;
-  --color-brand-terracotta: #1a1a1a;
-  --color-brand-sage: #2e4a3b;
+  --color-brand-ink-soft: #8b8378;
+  --color-brand-line: #e5ddd0;
+  --color-brand-terracotta: #2c4a3e;
+  --color-brand-terracotta-deep: #1f3529;
+  --color-brand-terracotta-soft: #dce4e0;
+  --color-brand-accent: #2c4a3e;
+  --color-brand-cream: #f7f4ee;
+  --color-brand-linen: #fbf8f1;
+  --color-brand-sage: #2c4a3e;
   --color-brand-amber: #f2c94c;
-  --color-brand-graphite: #5c5c5c;
-  --color-brand-hairline: #d9d4cb;
-  --color-brand-stone: #d9d4cb;
-  --color-brand-gold: #d9d4cb;
+  --color-brand-graphite: #8b8378;
+  --color-brand-hairline: #e5ddd0;
+  --color-brand-stone: #e5ddd0;
+  --color-brand-gold: #e5ddd0;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -154,19 +178,18 @@
   html {
     @apply font-sans;
     scroll-behavior: smooth;
-    background: #f7f5f1;
-    font-feature-settings: "ss01", "cv11";
+    background: #f7f4ee;
+    color: #1a1a1a;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
   body {
-    @apply bg-background text-foreground;
+    background: #f7f4ee;
     color: #1a1a1a;
-    background: #f7f5f1;
-    font-weight: 380;
-    line-height: 1.55;
-    letter-spacing: -0.005em;
+    font-family: var(--font-sans);
     font-size: 17px;
+    line-height: 1.6;
+    font-weight: 400;
   }
   @media (max-width: 640px) {
     body {
@@ -174,19 +197,66 @@
     }
   }
   ::selection {
-    background: #d1694a;
-    color: #f7f5f1;
+    background: #2c4a3e;
+    color: #f7f4ee;
   }
-  /* Display face shares the body family but pulls in tighter tracking and
-     a slightly heavier variable weight — no second typeface, no serif. */
+}
+
+@layer components {
+  /* Headline utility — Fraunces with a touch of optical tightening. */
   .font-display {
-    font-weight: 420;
-    letter-spacing: -0.025em;
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.01em;
   }
-  em {
-    font-style: normal;
-    font-weight: 420;
-    color: inherit;
+  /* For larger sizes we ship weight 500 + tighter tracking; apply
+     alongside `.font-display` via className composition when needed. */
+  .font-display-tight {
+    letter-spacing: -0.02em;
+  }
+
+  /* Small-caps editorial label — used for eyebrows, attribution, and
+     small-caps micro-labels. Colour defaults to botanical per brief;
+     override with a utility when placed on dark imagery (hero). */
+  .caption {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-botanical);
+  }
+}
+
+@layer utilities {
+  /* Applied to every <Image> on the homepage so imagery reads as a
+     consistent warm, desaturated register. When commissioned photos
+     arrive the class stays on the components and the new photos
+     inherit the treatment automatically. */
+  .editorial-img {
+    filter: saturate(0.85) contrast(1.05) brightness(1.02);
+  }
+
+  /* Animated left-to-right underline for text links. Base: no underline.
+     Hover: underline sweeps in from left over 200ms. */
+  .link-underline {
+    position: relative;
+    display: inline-block;
+  }
+  .link-underline::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    height: 1px;
+    width: 100%;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 200ms cubic-bezier(0.33, 1, 0.68, 1);
+  }
+  .link-underline:hover::after {
+    transform: scaleX(1);
   }
 }
 

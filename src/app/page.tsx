@@ -1,23 +1,23 @@
-import { Hero } from "@/components/home/Hero";
-import { Proof } from "@/components/home/Proof";
-import { Approach } from "@/components/home/Approach";
-import { Services } from "@/components/home/Services";
-import { Pricing } from "@/components/home/Pricing";
-import { Reviews } from "@/components/home/Reviews";
-import { FinalCTA } from "@/components/home/FinalCTA";
-import WhatsAppFloat from "@/components/WhatsAppFloat";
+import { Hero } from "@/components/Hero";
+import { ProofBar } from "@/components/ProofBar";
+import { HowItWorks } from "@/components/HowItWorks";
+import { Services } from "@/components/Services";
+import { WhyUs } from "@/components/WhyUs";
+import { Pricing } from "@/components/Pricing";
+import { Reviews } from "@/components/Reviews";
+import { FinalCTA } from "@/components/FinalCTA";
 
 export default function Home() {
   return (
     <>
       <Hero />
-      <Proof />
-      <Approach />
+      <ProofBar />
+      <HowItWorks />
       <Services />
+      <WhyUs />
       <Pricing />
       <Reviews />
       <FinalCTA />
-      <WhatsAppFloat />
     </>
   );
 }

@@ -9,7 +9,6 @@ import { Step1HomeService } from "@/components/booking/Step1HomeService";
 import { Step2Timing } from "@/components/booking/Step2Timing";
 import { Step3Review } from "@/components/booking/Step3Review";
 import { SummaryCard } from "@/components/booking/SummaryCard";
-import WhatsAppFloat from "@/components/WhatsAppFloat";
 import { whatsappLink } from "@/lib/whatsapp";
 import {
   buildBookingMessage,
@@ -389,7 +388,6 @@ export default function BookPage() {
           </aside>
         </div>
       </div>
-      <WhatsAppFloat variant="booking" />
     </div>
   );
 }

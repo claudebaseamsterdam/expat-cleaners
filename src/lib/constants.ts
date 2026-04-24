@@ -34,14 +34,6 @@ export const NAV_LINKS = [
   { href: "/#reviews", label: "Reviews" },
 ] as const;
 
-export const UNSPLASH = {
-  hero: "https://images.unsplash.com/photo-1616046229478-9901c5536a45",
-  regular: "https://images.unsplash.com/photo-1581578731548-c64695cc6952",
-  oneoff: "https://images.unsplash.com/photo-1583845112203-29329902332e",
-  deep: "https://images.unsplash.com/photo-1527515637462-cff94eecc1ac",
-  tenancy: "https://images.unsplash.com/photo-1558882224-dda166733046",
-} as const;
-
 export function waLink(message?: string): string {
   const text = message
     ? encodeURIComponent(message)
