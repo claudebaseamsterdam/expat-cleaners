@@ -21,8 +21,14 @@ export function Footer() {
       <div className="mx-auto max-w-[1280px] px-6 md:px-8">
         <div className="grid grid-cols-1 gap-12 md:grid-cols-3 md:gap-10">
           <div>
-            <Link href="/" aria-label="expatcleaners — home">
-              <Wordmark className="text-ink" />
+            <Link
+              href="/"
+              aria-label="expatcleaners — home"
+              style={{ color: "#1A1A1A" }}
+            >
+              {/* Explicit 20 px size — matches the nav wordmark register
+                  and overrides any device-side text inflation. */}
+              <Wordmark className="text-[20px]" />
             </Link>
             <p className="mt-4 max-w-xs text-[14px] leading-[1.55] text-stone">
               Built in Amsterdam for people who&apos;d rather be elsewhere.

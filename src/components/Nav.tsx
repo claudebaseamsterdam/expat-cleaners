@@ -54,22 +54,30 @@ export function Nav() {
     };
   }, [open]);
 
-  const textColor = overHero ? "text-cream" : "text-ink";
+  // Inline color style on the top-level container so child elements
+  // (Wordmark, nav links, hamburger) inherit via currentColor. This
+  // beats any Tailwind class-merge / cascade surprises that were
+  // causing the nav to render dark over the hero in QA.
+  const navColor = overHero ? "#F7F4EE" : "#1A1A1A";
 
   return (
     <header
       className={cn(
-        "fixed top-0 z-50 w-full transition-[background-color,border-color] duration-300",
+        "fixed top-0 z-50 w-full transition-[background-color,border-color,color] duration-300",
         scrolled
           ? "border-b border-stone/20 bg-cream"
           : "border-b border-transparent bg-transparent",
       )}
+      style={{ color: navColor }}
     >
       <div className="mx-auto flex h-[72px] max-w-[1280px] items-center justify-between px-6 md:px-8">
-        <Link href="/" aria-label="expatcleaners — home" className="group">
-          <Wordmark
-            className={cn("transition-colors duration-300", textColor)}
-          />
+        <Link
+          href="/"
+          aria-label="expatcleaners — home"
+          className="transition-colors duration-300"
+          style={{ color: "currentColor" }}
+        >
+          <Wordmark />
         </Link>
 
         <nav className="hidden items-center gap-9 md:flex">
@@ -77,10 +85,8 @@ export function Nav() {
             <Link
               key={l.href}
               href={l.href}
-              className={cn(
-                "text-[14px] font-medium transition-colors duration-300 hover:text-botanical",
-                textColor,
-              )}
+              className="text-[14px] font-medium transition-colors duration-300 hover:text-botanical"
+              style={{ color: "currentColor" }}
             >
               {l.label}
             </Link>
@@ -98,10 +104,8 @@ export function Nav() {
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
-          className={cn(
-            "grid h-10 w-10 place-items-center transition-colors duration-300 md:hidden",
-            textColor,
-          )}
+          className="grid h-10 w-10 place-items-center transition-colors duration-300 md:hidden"
+          style={{ color: "currentColor" }}
         >
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>

@@ -26,8 +26,8 @@ const CARDS: Card[] = [
     priceLine: "From €36/hr · same cleaner every time",
     body: "Weekly or bi-weekly, same cleaner each time. Organic supplies included.",
     image:
-      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1800&q=85&auto=format&fit=crop",
-    alt: "Tidy Amsterdam living room with natural light",
+      "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1800&q=85&auto=format&fit=crop",
+    alt: "Lived-in Amsterdam-feeling apartment interior with natural light",
     cta: "Start a recurring plan",
     prefill: "Hi! I'd like to set up a recurring clean.",
     featured: true,
@@ -38,8 +38,8 @@ const CARDS: Card[] = [
     priceLine: "€44/hr · no commitment",
     body: "For a single reset — before guests, after a party, when the week got away from you.",
     image:
-      "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1800&q=85&auto=format&fit=crop",
-    alt: "Sunlit kitchen counter mid-reset",
+      "https://images.unsplash.com/photo-1556909114-44e3e70034e2?w=1800&q=85&auto=format&fit=crop",
+    alt: "Warm kitchen interior, morning light, no people",
     cta: "Book a one-off",
     prefill: "Hi! I'd like to book a one-off clean.",
   },
@@ -49,8 +49,8 @@ const CARDS: Card[] = [
     priceLine: "€44/hr · min. 3 hours",
     body: "Inside appliances, skirting boards, behind the things no one ever reaches.",
     image:
-      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1800&q=85&auto=format&fit=crop",
-    alt: "Clean bathroom detail with morning light",
+      "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=1800&q=85&auto=format&fit=crop",
+    alt: "Detailed interior shot — clean kitchen corner in golden-hour light",
     cta: "Book a deep clean",
     prefill: "Hi! I'd like to book a deep clean.",
   },

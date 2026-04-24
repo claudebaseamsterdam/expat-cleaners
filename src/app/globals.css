@@ -182,6 +182,11 @@
     color: #1a1a1a;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Disable iOS Safari's automatic text inflation — keeps the nav
+       wordmark, footer wordmark, and caption labels at their declared
+       pixel sizes across devices. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
   body {
     background: #f7f4ee;
@@ -228,15 +233,17 @@
   }
 }
 
-@layer utilities {
-  /* Applied to every <Image> on the homepage so imagery reads as a
-     consistent warm, desaturated register. When commissioned photos
-     arrive the class stays on the components and the new photos
-     inherit the treatment automatically. */
-  .editorial-img {
-    filter: saturate(0.85) contrast(1.05) brightness(1.02);
-  }
+/* Warm, desaturated editorial filter applied to every homepage
+   <Image>. Declared outside @layer with !important to survive any
+   Tailwind arbitrary-value cascade (next/image applies additional
+   styles to the underlying <img>). When commissioned photos arrive
+   the class stays on the components and the new photos inherit the
+   treatment automatically. */
+.editorial-img {
+  filter: saturate(0.78) contrast(1.06) brightness(1.02) !important;
+}
 
+@layer utilities {
   /* Animated left-to-right underline for text links. Base: no underline.
      Hover: underline sweeps in from left over 200ms. */
   .link-underline {
