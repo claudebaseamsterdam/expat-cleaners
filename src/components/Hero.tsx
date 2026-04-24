@@ -48,7 +48,15 @@ export function Hero() {
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-black/35"
       />
-      {/* Scrim 2 — extra darkness where the copy sits. Covers the
+      {/* Scrim 2 — top third, 25 % black fading to transparent. Gives
+          the eyebrow its own darkness cushion so it doesn't compete
+          with a bright spot in the photo. Sits BELOW the bottom
+          gradient in DOM order so the bottom gradient wins on overlap. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-black/25 to-transparent"
+      />
+      {/* Scrim 3 — extra darkness where the copy sits. Covers the
           bottom two-thirds of the hero, 60 % black at the bottom fading
           to transparent at the top edge. */}
       <div
@@ -57,16 +65,16 @@ export function Hero() {
       />
 
       <div className="relative z-10 flex h-full flex-col justify-end">
-        <div className="mx-auto w-full max-w-[1280px] px-6 pb-14 md:px-8 md:pb-20">
+        <div className="mx-auto w-full max-w-[1280px] px-6 pb-32 md:px-8 md:pb-40">
           <div className="max-w-[640px]">
-            {/* Eyebrow — cream/90 over the scrim. Botanical is reserved
-                for eyebrows that sit on the cream page background
-                (HowItWorks, WhyUs, Services, Pricing, Reviews). */}
+            {/* Eyebrow — text-white full opacity, medium weight, wider
+                tracking. Botanical is reserved for eyebrows that sit on
+                the cream page background (HowItWorks, WhyUs, Services,
+                Pricing, Reviews). Never over the hero. */}
             <motion.p
               {...REVEAL}
               transition={{ ...REVEAL.transition, delay: 0 }}
-              className="text-[12px] uppercase tracking-[0.15em] text-cream/90"
-              style={{ fontWeight: 500 }}
+              className="text-xs font-medium uppercase tracking-[0.2em] text-white md:text-sm"
             >
               Amsterdam · English-first · Organic
             </motion.p>

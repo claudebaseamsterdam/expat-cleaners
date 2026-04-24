@@ -54,11 +54,12 @@ export function Nav() {
     };
   }, [open]);
 
-  // Colour every leaf element directly — do not rely on currentColor
-  // inheritance. This survives any Tailwind class-merge or cascade
-  // quirks that were letting the wordmark / hamburger render dark over
-  // the hero in QA. When `overHero`, cream. After scroll, ink.
+  // Triple-layered colour: (1) a `.nav-cream` / `.nav-ink` class with
+  // `!important`, (2) the Tailwind `text-cream` / `text-ink` utility,
+  // and (3) an inline `style={{ color }}`. At least one wins in every
+  // cascade / hydration scenario we've seen in QA.
   const navColor = overHero ? "#F7F4EE" : "#1A1A1A";
+  const textClass = overHero ? "nav-cream text-cream" : "nav-ink text-ink";
 
   return (
     <header
@@ -73,10 +74,10 @@ export function Nav() {
         <Link
           href="/"
           aria-label="expatcleaners — home"
-          className="transition-colors duration-300"
+          className={cn("transition-colors duration-300", textClass)}
           style={{ color: navColor }}
         >
-          <Wordmark style={{ color: navColor }} />
+          <Wordmark className={textClass} style={{ color: navColor }} />
         </Link>
 
         <nav className="hidden items-center gap-9 md:flex">
@@ -84,7 +85,10 @@ export function Nav() {
             <Link
               key={l.href}
               href={l.href}
-              className="text-[14px] font-medium transition-colors duration-300 hover:text-botanical"
+              className={cn(
+                "text-[14px] font-medium transition-colors duration-300 hover:text-botanical",
+                textClass,
+              )}
               style={{ color: navColor }}
             >
               {l.label}
@@ -103,7 +107,10 @@ export function Nav() {
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
-          className="grid h-10 w-10 place-items-center transition-colors duration-300 md:hidden"
+          className={cn(
+            "grid h-10 w-10 place-items-center transition-colors duration-300 md:hidden",
+            textClass,
+          )}
           style={{ color: navColor }}
         >
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}

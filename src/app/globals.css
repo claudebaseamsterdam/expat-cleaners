@@ -243,6 +243,18 @@
   filter: saturate(0.78) contrast(1.06) brightness(1.02) !important;
 }
 
+/* Nav colour hard-overrides — final-layer defense for the wordmark,
+   hamburger, and desktop nav links when the nav is transparent over
+   the hero (cream) vs. solid after scroll (ink). Declared outside
+   @layer with !important so they win over Tailwind utilities,
+   inherited body colour, or any user-agent default applied to <a>. */
+.nav-cream {
+  color: #f7f4ee !important;
+}
+.nav-ink {
+  color: #1a1a1a !important;
+}
+
 @layer utilities {
   /* Animated left-to-right underline for text links. Base: no underline.
      Hover: underline sweeps in from left over 200ms. */
