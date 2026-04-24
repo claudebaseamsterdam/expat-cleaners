@@ -42,27 +42,44 @@ export function Hero() {
         />
       </motion.div>
 
-      {/* Scrim — covers the bottom 75 % of the hero, ink/55 at the
-          bottom, linear fade to transparent. Only approved gradient
-          on the site. */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-ink/55 to-transparent" />
+      {/* Scrim 1 — full-hero base darkness so copy reads against any
+          photo we swap in. bg-black/35 gives a uniform 35 % ink wash. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-black/35"
+      />
+      {/* Scrim 2 — extra darkness where the copy sits. Covers the
+          bottom two-thirds of the hero, 60 % black at the bottom fading
+          to transparent at the top edge. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/60 via-black/30 to-transparent"
+      />
 
       <div className="relative z-10 flex h-full flex-col justify-end">
         <div className="mx-auto w-full max-w-[1280px] px-6 pb-14 md:px-8 md:pb-20">
           <div className="max-w-[640px]">
+            {/* Eyebrow — cream/90 over the scrim. Botanical is reserved
+                for eyebrows that sit on the cream page background
+                (HowItWorks, WhyUs, Services, Pricing, Reviews). */}
             <motion.p
               {...REVEAL}
               transition={{ ...REVEAL.transition, delay: 0 }}
               className="text-[12px] uppercase tracking-[0.15em] text-cream/90"
-              style={{ color: "#A8C0B1", fontWeight: 500 }}
+              style={{ fontWeight: 500 }}
             >
               Amsterdam · English-first · Organic
             </motion.p>
+            {/* H1 — text-shadow is belt-and-suspenders: invisible as a
+                shadow, but lifts contrast at character edges. */}
             <motion.h1
               {...REVEAL}
               transition={{ ...REVEAL.transition, delay: 0.08 }}
               className="mt-5 font-display text-[40px] leading-[1.05] tracking-[-0.02em] text-cream md:text-[64px]"
-              style={{ fontWeight: 500 }}
+              style={{
+                fontWeight: 500,
+                textShadow: "0 2px 20px rgba(0,0,0,0.3)",
+              }}
             >
               Your Amsterdam apartment, cleaned properly.
             </motion.h1>

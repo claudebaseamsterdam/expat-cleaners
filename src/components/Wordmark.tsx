@@ -1,15 +1,18 @@
 import { cn } from "@/lib/utils";
+import type { CSSProperties } from "react";
 
 type Props = {
   className?: string;
+  style?: CSSProperties;
 };
 
 /**
  * expatcleaners wordmark — Fraunces, weight 400, letter-spacing -0.01em.
- * Lowercase, no symbol. Colour defaults to `ink`; pass a className to
- * override (e.g. `text-cream` on dark contexts).
+ * Lowercase, no symbol. Colour inherits from the parent's current
+ * colour by default; pass `className` or `style` to force a specific
+ * colour (e.g. cream over the hero).
  */
-export function Wordmark({ className }: Props) {
+export function Wordmark({ className, style }: Props) {
   return (
     <span
       aria-label="expatcleaners — home"
@@ -17,7 +20,7 @@ export function Wordmark({ className }: Props) {
         "font-display text-[18px] leading-none tracking-[-0.01em]",
         className,
       )}
-      style={{ fontWeight: 400 }}
+      style={{ fontWeight: 400, ...style }}
     >
       expatcleaners
     </span>
