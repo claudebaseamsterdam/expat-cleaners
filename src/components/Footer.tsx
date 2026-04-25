@@ -28,7 +28,8 @@ export function Footer() {
               <Wordmark className="text-[20px]" />
             </Link>
             <p className="mt-4 max-w-xs text-[14px] leading-[1.55] text-stone">
-              Built in Amsterdam for people who&apos;d rather be elsewhere.
+              English-speaking cleaners. Organic products. Booked on
+              WhatsApp. Amsterdam.
             </p>
           </div>
 

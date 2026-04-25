@@ -4,6 +4,7 @@ import "./globals.css";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { StickyWhatsApp } from "@/components/StickyWhatsApp";
+import { MotionProvider } from "@/components/MotionProvider";
 
 // Fraunces as a variable font — opsz axis for optical sizing; wght is
 // the default axis. Individual weights (400/500) applied via CSS on
@@ -53,10 +54,12 @@ export default function RootLayout({
       className={`${fraunces.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-cream text-ink">
-        <Nav />
-        <main className="flex-1">{children}</main>
-        <Footer />
-        <StickyWhatsApp />
+        <MotionProvider>
+          <Nav />
+          <main className="flex-1">{children}</main>
+          <Footer />
+          <StickyWhatsApp />
+        </MotionProvider>
       </body>
     </html>
   );

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 
@@ -18,25 +18,21 @@ const REVEAL = {
 };
 
 export function Hero() {
-  const reduceMotion = useReducedMotion();
   return (
     <section className="relative h-[100svh] min-h-[640px] w-full overflow-hidden bg-ink">
       {/* Ken Burns background — slow scale 1 → 1.05 over 20s, mirrored.
-          Skipped entirely when the user has prefers-reduced-motion set. */}
+          MotionProvider's reducedMotion="user" suppresses this when the
+          user prefers reduced motion. */}
       <motion.div
         className="absolute inset-0"
-        initial={false}
-        animate={reduceMotion ? { scale: 1 } : { scale: 1.05 }}
-        transition={
-          reduceMotion
-            ? { duration: 0 }
-            : {
-                duration: 20,
-                ease: "easeInOut",
-                repeat: Infinity,
-                repeatType: "mirror",
-              }
-        }
+        initial={{ scale: 1 }}
+        animate={{ scale: 1.05 }}
+        transition={{
+          duration: 20,
+          ease: "easeInOut",
+          repeat: Infinity,
+          repeatType: "mirror",
+        }}
       >
         <Image
           src={HERO_IMG}

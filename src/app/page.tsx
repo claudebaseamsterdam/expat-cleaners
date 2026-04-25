@@ -17,8 +17,8 @@ export default function Home() {
       <HowItWorks />
       <Services />
       <WhyUs />
-      <Pricing />
       <Reviews />
+      <Pricing />
       <FinalCTA />
     </>
   );
