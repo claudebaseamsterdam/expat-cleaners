@@ -70,7 +70,7 @@ export function Pricing() {
               </h3>
               <div className="mt-5 flex items-baseline gap-2">
                 <span
-                  className="font-display text-[48px] leading-none tracking-[-0.02em] text-ink"
+                  className="font-display text-[48px] leading-none tracking-[-0.02em] text-ink tabular-nums"
                   style={{ fontWeight: 400 }}
                 >
                   €{plan.price}

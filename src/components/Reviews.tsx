@@ -1,6 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { Star } from "lucide-react";
+import { GOOGLE_REVIEWS_URL } from "@/lib/constants";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -59,12 +61,16 @@ export function Reviews() {
               transition={{ duration: 0.6, delay: i * 0.06, ease: EASE }}
               className="flex min-w-[85%] shrink-0 snap-center flex-col border border-stone/25 bg-white p-8 shadow-[0_1px_0_rgba(0,0,0,0.04)] md:min-w-0 md:shrink md:snap-none md:p-10"
             >
-              <div className="flex items-center gap-0.5 text-[14px] text-[#C8A64B]" aria-label="5 out of 5 stars">
-                <span aria-hidden>★</span>
-                <span aria-hidden>★</span>
-                <span aria-hidden>★</span>
-                <span aria-hidden>★</span>
-                <span aria-hidden>★</span>
+              <div className="flex items-center gap-1 text-[#C8A64B]" aria-label="5 out of 5 stars">
+                {Array.from({ length: 5 }).map((_, idx) => (
+                  <Star
+                    key={idx}
+                    aria-hidden
+                    className="h-4 w-4"
+                    fill="currentColor"
+                    strokeWidth={0}
+                  />
+                ))}
               </div>
               <blockquote
                 className="mt-5 flex-1 font-display text-[20px] leading-[1.4] tracking-[-0.01em] text-ink md:text-[22px]"
@@ -89,8 +95,12 @@ export function Reviews() {
           transition={{ duration: 0.6, ease: EASE }}
           className="mt-10 text-center md:mt-16"
         >
-          {/* TODO: replace # with the real Google Business review URL */}
-          <a href="#" className="link-underline text-[15px] text-ink">
+          <a
+            href={GOOGLE_REVIEWS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="link-underline text-[15px] text-ink"
+          >
             Read more reviews on Google →
           </a>
         </motion.p>

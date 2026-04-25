@@ -1,10 +1,7 @@
 import Link from "next/link";
 import { whatsappHref } from "@/components/WhatsAppButton";
 import { Wordmark } from "@/components/Wordmark";
-
-// KvK / BTW placeholders live here as code comments until registered.
-// KvK — [insert once registered]
-// BTW — [insert once registered]
+import { BRAND } from "@/lib/constants";
 
 const SERVICES = [
   { label: "Recurring", href: "/book" },
@@ -65,8 +62,11 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-16 border-t border-stone/25 pt-6 text-[13px] text-stone">
-          © {year} ExpatCleaners
+        <div className="mt-16 flex flex-col gap-2 border-t border-stone/25 pt-6 text-[13px] text-stone md:flex-row md:items-center md:justify-between md:gap-6">
+          <p>© {year} ExpatCleaners</p>
+          <p className="tabular-nums">
+            KvK {BRAND.kvk} · BTW {BRAND.btw}
+          </p>
         </div>
       </div>
     </footer>

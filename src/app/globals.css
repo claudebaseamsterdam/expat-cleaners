@@ -36,7 +36,10 @@
   --color-ink: #1a1a1a;
   --color-botanical: #2c4a3e;
   --color-botanical-hover: #1f3529;
-  --color-stone: #8b8378;
+  /* Darkened from #8b8378 (~3.3:1 on cream — fails WCAG AA) to land
+     ~5.4:1 against cream. Keeps the warm neutral feel for secondary
+     text but passes AA for body copy in HowItWorks/Services/Pricing. */
+  --color-stone: #6b6359;
   --color-whatsapp: #25d366;
   --color-whatsapp-hover: #1fb855;
 
@@ -50,7 +53,7 @@
   --color-brand-bg: #f7f4ee;
   --color-brand-bg-alt: #fbf8f1;
   --color-brand-ink: #1a1a1a;
-  --color-brand-ink-soft: #8b8378;
+  --color-brand-ink-soft: #6b6359;
   --color-brand-line: #e5ddd0;
   --color-brand-terracotta: #2c4a3e;
   --color-brand-terracotta-deep: #1f3529;
@@ -60,7 +63,7 @@
   --color-brand-linen: #fbf8f1;
   --color-brand-sage: #2c4a3e;
   --color-brand-amber: #f2c94c;
-  --color-brand-graphite: #8b8378;
+  --color-brand-graphite: #6b6359;
   --color-brand-hairline: #e5ddd0;
   --color-brand-stone: #e5ddd0;
   --color-brand-gold: #e5ddd0;
@@ -177,7 +180,6 @@
   }
   html {
     @apply font-sans;
-    scroll-behavior: smooth;
     background: #f7f4ee;
     color: #1a1a1a;
     -webkit-font-smoothing: antialiased;
@@ -204,6 +206,11 @@
   ::selection {
     background: #2c4a3e;
     color: #f7f4ee;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
   }
 }
 
@@ -274,8 +281,14 @@
     transform-origin: left center;
     transition: transform 200ms cubic-bezier(0.33, 1, 0.68, 1);
   }
-  .link-underline:hover::after {
+  .link-underline:hover::after,
+  .link-underline:focus-visible::after {
     transform: scaleX(1);
+  }
+  .link-underline:focus-visible {
+    outline: 2px solid var(--color-botanical);
+    outline-offset: 4px;
+    border-radius: 2px;
   }
 }
 

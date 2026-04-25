@@ -7,7 +7,12 @@ export const BRAND = {
   email: "hello@expat-cleaners.com",
   instagram: "https://instagram.com/expatcleaners",
   tagline: "English-speaking cleaners in Amsterdam",
+  kvk: "94002185",
+  btw: "NL005057342B81",
 } as const;
+
+export const GOOGLE_REVIEWS_URL =
+  "https://www.google.com/search?q=ExpatCleaners+Amsterdam+reviews";
 
 export const WHATSAPP_URL = `https://wa.me/${BRAND.whatsappNumber}?text=${BRAND.whatsappMessage}`;
 

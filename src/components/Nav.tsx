@@ -74,7 +74,13 @@ export function Nav() {
         <Link
           href="/"
           aria-label="expatcleaners — home"
-          className={cn("transition-colors duration-300", textClass)}
+          className={cn(
+            "rounded-sm transition-colors duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4",
+            overHero
+              ? "focus-visible:outline-cream"
+              : "focus-visible:outline-botanical",
+            textClass,
+          )}
           style={{ color: navColor }}
         >
           <Wordmark className={textClass} style={{ color: navColor }} />
@@ -86,7 +92,10 @@ export function Nav() {
               key={l.href}
               href={l.href}
               className={cn(
-                "text-[14px] font-medium transition-colors duration-300 hover:text-botanical",
+                "rounded-sm text-[14px] font-medium transition-colors duration-300 hover:text-botanical focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4",
+                overHero
+                  ? "focus-visible:outline-cream"
+                  : "focus-visible:outline-botanical",
                 textClass,
               )}
               style={{ color: navColor }}
@@ -94,9 +103,20 @@ export function Nav() {
               {l.label}
             </Link>
           ))}
+          {/* Ghost pill — secondary on purpose. The single saturated CTA
+              on screen is the WhatsApp button in the hero / final CTA;
+              the nav Book link is a quiet alternative that doesn't
+              compete with it for visual primacy. Inline style/textClass
+              override is intentionally NOT applied here — the pill needs
+              hover utilities to swap text colour. */}
           <Link
             href="/book"
-            className="inline-flex h-10 items-center justify-center rounded-full bg-botanical px-5 text-[14px] font-medium text-cream transition-all duration-300 hover:-translate-y-0.5 hover:bg-botanical-hover hover:shadow-[0_8px_22px_-10px_rgba(44,74,62,0.5)]"
+            className={cn(
+              "inline-flex h-10 items-center justify-center rounded-full border px-5 text-[14px] font-medium transition-colors duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+              overHero
+                ? "border-cream/60 text-cream hover:border-cream hover:bg-cream/10 focus-visible:outline-cream"
+                : "border-botanical/40 text-botanical hover:border-botanical hover:bg-botanical hover:text-cream focus-visible:outline-botanical",
+            )}
           >
             Book
           </Link>
@@ -108,7 +128,10 @@ export function Nav() {
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
           className={cn(
-            "grid h-10 w-10 place-items-center transition-colors duration-300 md:hidden",
+            "grid h-10 w-10 place-items-center rounded-sm transition-colors duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 md:hidden",
+            overHero
+              ? "focus-visible:outline-cream"
+              : "focus-visible:outline-botanical",
             textClass,
           )}
           style={{ color: navColor }}

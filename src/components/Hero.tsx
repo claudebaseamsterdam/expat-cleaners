@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
+import { Star } from "lucide-react";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 
 // Calmer, warmer living-room interior — the previous hero shot was too
@@ -17,19 +18,25 @@ const REVEAL = {
 };
 
 export function Hero() {
+  const reduceMotion = useReducedMotion();
   return (
     <section className="relative h-[100svh] min-h-[640px] w-full overflow-hidden bg-ink">
-      {/* Ken Burns background — slow scale 1 → 1.05 over 20s, mirrored. */}
+      {/* Ken Burns background — slow scale 1 → 1.05 over 20s, mirrored.
+          Skipped entirely when the user has prefers-reduced-motion set. */}
       <motion.div
         className="absolute inset-0"
-        initial={{ scale: 1 }}
-        animate={{ scale: 1.05 }}
-        transition={{
-          duration: 20,
-          ease: "easeInOut",
-          repeat: Infinity,
-          repeatType: "mirror",
-        }}
+        initial={false}
+        animate={reduceMotion ? { scale: 1 } : { scale: 1.05 }}
+        transition={
+          reduceMotion
+            ? { duration: 0 }
+            : {
+                duration: 20,
+                ease: "easeInOut",
+                repeat: Infinity,
+                repeatType: "mirror",
+              }
+        }
       >
         <Image
           src={HERO_IMG}
@@ -119,10 +126,18 @@ export function Hero() {
             <motion.p
               {...REVEAL}
               transition={{ ...REVEAL.transition, delay: 0.32 }}
-              className="mt-7 text-[13px] text-cream/80"
+              className="mt-7 flex items-center gap-2 text-[13px] text-cream/80"
             >
-              ★ 4.9 on Google · 200+ Amsterdam expats · Same cleaner,
-              every time
+              <Star
+                aria-hidden
+                className="h-3.5 w-3.5 shrink-0 text-[#E5C97A]"
+                fill="currentColor"
+                strokeWidth={0}
+              />
+              <span>
+                4.9 on Google · 200+ Amsterdam expats · Same cleaner,
+                every time
+              </span>
             </motion.p>
           </div>
         </div>
