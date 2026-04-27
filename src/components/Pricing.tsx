@@ -46,9 +46,16 @@ const PLANS: Plan[] = [
   },
 ];
 
+// Asymmetric section padding: full top (matches every other section)
+// but tightened bottom so this section reads as one composition with
+// the FinalCTA that follows. Pricing.pb (md:80) + FinalCTA.pt (md:16)
+// ≈ 96px combined gap on desktop — within the brief's 80–120px target.
 export function Pricing() {
   return (
-    <section id="pricing" className="bg-cream py-20 md:py-32">
+    <section
+      id="pricing"
+      className="bg-cream pt-20 pb-12 md:pt-32 md:pb-20"
+    >
       <div className="mx-auto max-w-[1280px] px-6 md:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -80,15 +87,20 @@ export function Pricing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-80px" }}
                 transition={{ duration: 0.6, delay: i * 0.06, ease: EASE }}
-                className={cn(
-                  "flex flex-col",
-                  plan.featured &&
-                    "relative md:-mt-4 md:border-t-2 md:border-botanical md:pt-7",
-                )}
+                className="flex flex-col"
               >
-                {plan.featured && (
-                  <p className="caption mb-4">Most chosen</p>
-                )}
+                {/* Reserve the same vertical slot on every card so the
+                    title row aligns across all three. The non-featured
+                    cards render an invisible placeholder of identical
+                    height; only the Weekly card has visible "Most
+                    chosen" text. No border / no badge — pure
+                    typographic mark per the brief. */}
+                <p
+                  className={cn("caption mb-4", !plan.featured && "invisible")}
+                  aria-hidden={!plan.featured}
+                >
+                  Most chosen
+                </p>
                 <h3
                   className="font-display text-[22px] leading-[1.2] tracking-[-0.01em] text-ink"
                   style={{ fontWeight: 500 }}
