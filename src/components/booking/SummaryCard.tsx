@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowUpRight, Loader2, Tag } from "lucide-react";
+import { ArrowUpRight, Loader2, MessageCircle, Tag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
+  buildCustomQuoteMessage,
   formatEuro,
-  formatHours,
   type BookingState,
   type PriceBreakdown,
 } from "@/lib/booking";
+import { whatsappLink } from "@/lib/whatsapp";
+import { formatDurationBreakdown, parseSqm } from "@/lib/pricing";
 
 type Props = {
   price: PriceBreakdown;
@@ -51,8 +53,18 @@ export function SummaryCard({
     laborSaved,
     addonLines,
     subtotal,
+    isCustomQuote,
   } = price;
   const hasDiscount = laborSaved > 0.01;
+  const sqm = parseSqm(state.home.size);
+  const breakdown = formatDurationBreakdown({
+    hours,
+    sqm,
+    bedrooms: state.home.beds,
+    bathrooms: state.home.baths,
+    homeType: state.home.type,
+  });
+  const customQuoteHref = whatsappLink(buildCustomQuoteMessage(sqm));
 
   return (
     <aside
@@ -66,7 +78,38 @@ export function SummaryCard({
         Your booking
       </h3>
 
-      {!service ? (
+      {isCustomQuote ? (
+        <div className="mt-4">
+          <p className="text-sm font-medium text-brand-ink">
+            Custom quote — message us on WhatsApp.
+          </p>
+          <p className="mt-2 text-xs leading-relaxed text-brand-graphite">
+            For homes over 155m² we quote on WhatsApp so we can size the
+            team and the time properly.
+          </p>
+          {!readOnly && (
+            <a
+              href={customQuoteHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-brand-terracotta px-5 text-sm font-medium text-white transition-colors hover:bg-brand-terracotta-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-terracotta"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Get a custom quote
+              <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:rotate-45" />
+            </a>
+          )}
+          <p className="mt-4 flex items-start gap-1.5 text-xs leading-relaxed text-brand-graphite">
+            <span className="text-brand-sage" aria-hidden>
+              ✓
+            </span>
+            <span>
+              Organic bio cleaning products included in every clean — no
+              extra charge.
+            </span>
+          </p>
+        </div>
+      ) : !service ? (
         <p className="mt-3 text-sm text-brand-graphite">
           Select a service to see your estimate.
         </p>
@@ -76,8 +119,7 @@ export function SummaryCard({
             <div className="min-w-0">
               <div className="font-medium text-brand-ink">{service.label}</div>
               <div className="mt-0.5 text-xs text-brand-graphite">
-                {formatHours(hours)} est. · {state.home.beds} bed /{" "}
-                {state.home.baths} bath
+                {breakdown}
               </div>
             </div>
             {hasDiscount ? (
@@ -148,21 +190,25 @@ export function SummaryCard({
         </div>
       )}
 
-      <p className="mt-4 flex items-start gap-1.5 text-xs leading-relaxed text-brand-graphite">
-        <span className="text-brand-sage" aria-hidden>
-          ✓
-        </span>
-        <span>
-          Organic bio cleaning products included in every clean — no extra
-          charge.
-        </span>
-      </p>
-      <p className="mt-2 text-xs leading-relaxed text-brand-graphite">
-        Final price confirmed on arrival. Pay after the clean — no online
-        payment.
-      </p>
+      {!isCustomQuote && (
+        <>
+          <p className="mt-4 flex items-start gap-1.5 text-xs leading-relaxed text-brand-graphite">
+            <span className="text-brand-sage" aria-hidden>
+              ✓
+            </span>
+            <span>
+              Organic bio cleaning products included in every clean — no
+              extra charge.
+            </span>
+          </p>
+          <p className="mt-2 text-xs leading-relaxed text-brand-graphite">
+            Final price confirmed on arrival. Pay after the clean — no
+            online payment.
+          </p>
+        </>
+      )}
 
-      {!readOnly && (
+      {!readOnly && !isCustomQuote && (
       <div className="mt-4">
         {!couponOpen ? (
           <button
@@ -195,7 +241,7 @@ export function SummaryCard({
       </div>
       )}
 
-      {!readOnly && (ready ? (
+      {!readOnly && !isCustomQuote && (ready ? (
         <button
           type="button"
           onClick={onConfirm}
@@ -223,7 +269,7 @@ export function SummaryCard({
         </button>
       ))}
 
-      {!readOnly && (
+      {!readOnly && !isCustomQuote && (
       <a
         href={waHref}
         onClick={onWhatsApp}

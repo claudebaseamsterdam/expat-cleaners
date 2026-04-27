@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronUp, X } from "lucide-react";
+import { ArrowUpRight, ChevronUp, MessageCircle, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
+  buildCustomQuoteMessage,
   formatEuro,
-  formatHours,
   type BookingState,
   type PriceBreakdown,
 } from "@/lib/booking";
+import { whatsappLink } from "@/lib/whatsapp";
+import { formatDurationBreakdown, parseSqm } from "@/lib/pricing";
 
 type Props = {
   price: PriceBreakdown;
@@ -38,9 +40,19 @@ export function MobileSummaryBar({ price, state }: Props) {
     laborSaved,
     addonLines,
     subtotal,
+    isCustomQuote,
   } = price;
   const hasService = !!service;
   const hasDiscount = laborSaved > 0.01;
+  const sqm = parseSqm(state.home.size);
+  const breakdown = formatDurationBreakdown({
+    hours,
+    sqm,
+    bedrooms: state.home.beds,
+    bathrooms: state.home.baths,
+    homeType: state.home.type,
+  });
+  const customQuoteHref = whatsappLink(buildCustomQuoteMessage(sqm));
 
   // Lock body scroll while the expanded sheet is open.
   useEffect(() => {
@@ -99,7 +111,27 @@ export function MobileSummaryBar({ price, state }: Props) {
               <h3 className="font-display text-xl tracking-tight text-brand-ink">
                 Your booking
               </h3>
-              {!hasService ? (
+              {isCustomQuote ? (
+                <div className="mt-4">
+                  <p className="text-sm font-medium text-brand-ink">
+                    Custom quote — message us on WhatsApp.
+                  </p>
+                  <p className="mt-2 text-xs leading-relaxed text-brand-graphite">
+                    For homes over 155m² we quote on WhatsApp so we can size
+                    the team and the time properly.
+                  </p>
+                  <a
+                    href={customQuoteHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-brand-terracotta px-5 text-sm font-medium text-white transition-colors hover:bg-brand-terracotta-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-terracotta"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    Get a custom quote
+                    <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:rotate-45" />
+                  </a>
+                </div>
+              ) : !hasService ? (
                 <p className="mt-3 text-sm text-brand-graphite">
                   Select a service to see your estimate.
                 </p>
@@ -111,8 +143,7 @@ export function MobileSummaryBar({ price, state }: Props) {
                         {service.label}
                       </div>
                       <div className="mt-0.5 text-xs text-brand-graphite">
-                        {formatHours(hours)} est. · {state.home.beds} bed /{" "}
-                        {state.home.baths} bath · {frequency.label}
+                        {breakdown} · {frequency.label}
                       </div>
                     </div>
                     {hasDiscount ? (
@@ -201,59 +232,82 @@ export function MobileSummaryBar({ price, state }: Props) {
           paddingBottom: "calc(env(safe-area-inset-bottom) + 8px)",
         }}
       >
-        <button
-          type="button"
-          onClick={() => hasService && setOpen(true)}
-          disabled={!hasService}
-          aria-label={
-            hasService
-              ? "Open booking summary"
-              : "Select a service to see your estimate"
-          }
-          className={cn(
-            "flex w-full items-center justify-between gap-3 px-5 py-4 text-left",
-            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-brand-terracotta",
-            !hasService && "cursor-default",
-          )}
-        >
-          {hasService ? (
+        {isCustomQuote ? (
+          <a
+            href={customQuoteHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Get a custom quote on WhatsApp"
+            className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-brand-terracotta"
+          >
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-medium text-brand-ink">
-                {service.label}
+                Custom quote
               </div>
               <div className="mt-0.5 truncate text-xs text-brand-graphite">
-                {formatHours(hours)} · {frequency.label}
+                Message us on WhatsApp
               </div>
             </div>
-          ) : (
-            <div className="min-w-0 flex-1 text-sm text-brand-graphite">
-              Select a service to see your estimate
+            <div className="flex shrink-0 items-center gap-2 text-brand-terracotta">
+              <MessageCircle className="h-4 w-4" />
+              <ArrowUpRight className="h-4 w-4" />
             </div>
-          )}
-          <div className="flex shrink-0 items-center gap-3">
-            {hasService && (
-              <AnimatePresence mode="popLayout" initial={false}>
-                <motion.span
-                  key={subtotal}
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                  className="font-display text-xl tabular-nums text-brand-ink"
-                >
-                  {formatEuro(subtotal)}
-                </motion.span>
-              </AnimatePresence>
+          </a>
+        ) : (
+          <button
+            type="button"
+            onClick={() => hasService && setOpen(true)}
+            disabled={!hasService}
+            aria-label={
+              hasService
+                ? "Open booking summary"
+                : "Select a service to see your estimate"
+            }
+            className={cn(
+              "flex w-full items-center justify-between gap-3 px-5 py-4 text-left",
+              "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-brand-terracotta",
+              !hasService && "cursor-default",
             )}
-            <ChevronUp
-              aria-hidden
-              className={cn(
-                "h-4 w-4 transition-colors",
-                hasService ? "text-brand-ink" : "text-brand-hairline",
+          >
+            {hasService ? (
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-medium text-brand-ink">
+                  {service.label}
+                </div>
+                <div className="mt-0.5 truncate text-xs text-brand-graphite">
+                  {breakdown} · {frequency.label}
+                </div>
+              </div>
+            ) : (
+              <div className="min-w-0 flex-1 text-sm text-brand-graphite">
+                Select a service to see your estimate
+              </div>
+            )}
+            <div className="flex shrink-0 items-center gap-3">
+              {hasService && (
+                <AnimatePresence mode="popLayout" initial={false}>
+                  <motion.span
+                    key={subtotal}
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                    className="font-display text-xl tabular-nums text-brand-ink"
+                  >
+                    {formatEuro(subtotal)}
+                  </motion.span>
+                </AnimatePresence>
               )}
-            />
-          </div>
-        </button>
+              <ChevronUp
+                aria-hidden
+                className={cn(
+                  "h-4 w-4 transition-colors",
+                  hasService ? "text-brand-ink" : "text-brand-hairline",
+                )}
+              />
+            </div>
+          </button>
+        )}
       </div>
     </>
   );

@@ -23,6 +23,11 @@ import {
   FolderOpen,
   type LucideIcon,
 } from "lucide-react";
+import {
+  calculateDuration,
+  parseSqm,
+  type DurationResult,
+} from "@/lib/pricing";
 
 export type ServiceId =
   | "regular"
@@ -267,24 +272,21 @@ export const getFrequency = (id: FrequencyId): Frequency =>
 export const getExtra = (id: string): Extra | undefined =>
   EXTRAS.find((e) => e.id === id);
 
-export function estimateHours(
-  beds: number,
-  baths: number,
-  serviceId: ServiceId | null,
-): number {
-  if (!serviceId) return 2;
-  const base = ["deep", "moveout", "movein"].includes(serviceId) ? 3 : 2;
-  const extra =
-    Math.max(0, beds - 1) * 0.5 + Math.max(0, baths - 1) * 0.5;
-  const mult =
-    serviceId === "deep"
-      ? 1.4
-      : ["moveout", "movein"].includes(serviceId)
-        ? 1.5
-        : serviceId === "builders"
-          ? 2
-          : 1;
-  return Math.max(2, Math.ceil((base + extra) * mult * 2) / 2);
+/**
+ * Compute the duration result for a booking state.
+ * Thin adapter: parses the m² string field, looks up the service min,
+ * delegates to lib/pricing.calculateDuration. All pricing math lives
+ * in lib/pricing.ts (single source of truth) — never duplicate it.
+ */
+export function bookingDuration(state: BookingState): DurationResult {
+  const service = getService(state.serviceId);
+  return calculateDuration({
+    sqm: parseSqm(state.home.size),
+    bedrooms: state.home.beds,
+    bathrooms: state.home.baths,
+    homeType: state.home.type,
+    serviceMinHours: service?.minHours,
+  });
 }
 
 export type AddonLine = { extra: Extra; qty: number; line: number };
@@ -301,16 +303,29 @@ export type PriceBreakdown = {
   extrasTotal: number;
   subtotal: number;
   discount: number;
+  /**
+   * True when the home is ≥ CUSTOM_QUOTE_THRESHOLD_SQM and we route the
+   * user to a WhatsApp custom quote. Numeric fields (hours/labor/etc)
+   * are still set to 0 in this case so consumers don't accidentally
+   * render garbage; UI surfaces should branch on this flag and show the
+   * custom-quote panel instead of the price block.
+   */
+  isCustomQuote: boolean;
 };
 
 export function calcTotal(state: BookingState): PriceBreakdown {
   const service = getService(state.serviceId);
   const frequency = getFrequency(state.frequencyId);
-  const hours = service
-    ? estimateHours(state.home.beds, state.home.baths, state.serviceId)
-    : 0;
+
+  const duration = service
+    ? bookingDuration(state)
+    : ({ kind: "estimate", hours: 0 } as DurationResult);
+
+  const isCustomQuote = duration.kind === "custom-quote";
+  const hours = duration.kind === "estimate" ? duration.hours : 0;
+
   const baseRate = service?.baseRate ?? BASE_RATE;
-  const labor = baseRate * hours;
+  const labor = isCustomQuote ? 0 : baseRate * hours;
   const laborDiscounted = labor * (1 - frequency.discount);
   const laborSaved = labor - laborDiscounted;
 
@@ -323,7 +338,10 @@ export function calcTotal(state: BookingState): PriceBreakdown {
     .filter((l): l is AddonLine => l !== null);
 
   const extrasTotal = addonLines.reduce((acc, l) => acc + l.line, 0);
-  const subtotal = laborDiscounted + extrasTotal;
+  // For a custom quote the extras line items still display in the
+  // breakdown, but we don't roll them into a subtotal — the quote is
+  // negotiated on WhatsApp.
+  const subtotal = isCustomQuote ? 0 : laborDiscounted + extrasTotal;
 
   return {
     service,
@@ -337,6 +355,7 @@ export function calcTotal(state: BookingState): PriceBreakdown {
     extrasTotal,
     subtotal,
     discount: frequency.discount,
+    isCustomQuote,
   };
 }
 
@@ -348,9 +367,25 @@ export const formatEuro = (n: number): string => {
 export const formatHours = (h: number): string =>
   Number.isInteger(h) ? `${h}h` : `${h.toFixed(1)}h`;
 
+/**
+ * Build the WhatsApp deep-link message for a custom-quote home. The
+ * sticky summary panels and the booking flow both fall back to this
+ * when the home is ≥ CUSTOM_QUOTE_THRESHOLD_SQM.
+ */
+export function buildCustomQuoteMessage(sqm: number | null): string {
+  const sizeLabel =
+    typeof sqm === "number" && sqm > 0 ? `${sqm}m²` : "large";
+  return `Hi! I'd like a quote for a ${sizeLabel} home.`;
+}
+
 export function buildBookingMessage(state: BookingState): string {
   const price = calcTotal(state);
-  const { service, frequency, hours, addonLines, subtotal } = price;
+  const { service, frequency, hours, addonLines, subtotal, isCustomQuote } =
+    price;
+
+  if (isCustomQuote) {
+    return buildCustomQuoteMessage(parseSqm(state.home.size));
+  }
 
   if (!service) {
     return "Hey ExpatCleaners — I'd like to book a clean.";

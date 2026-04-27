@@ -28,6 +28,10 @@ export function StepExtras({ state, onExtra }: Props) {
           charge.
         </p>
         <p className="mt-1 text-sm text-brand-graphite">
+          We estimate hours based on your home size. You only pay for the
+          time we work — final price confirmed on arrival.
+        </p>
+        <p className="mt-1 text-sm text-brand-graphite">
           No vacuum at home? Add ours below.
         </p>
 
