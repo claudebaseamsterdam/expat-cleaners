@@ -157,6 +157,31 @@ export function trackInitiateCheckout(params: {
 }
 
 /**
+ * Fires Lead on a "direct WhatsApp CTA" click — i.e. anywhere a user
+ * taps a wa.me link that doesn't go through the booking funnel. This
+ * replaces Meta's auto-collected button metadata (which surfaced as
+ * messy class names in Test Events) with a clean, named event.
+ *
+ * Caller passes the surface so the funnel report stays legible:
+ * 'whatsapp_cta' for the standard hero/pricing/services buttons,
+ * 'whatsapp_sticky' for the mobile sticky bar, 'whatsapp_footer' for
+ * the footer text link, 'whatsapp_tenancy' for the end-of-tenancy
+ * inline link. Default category 'contact' / destination 'whatsapp'
+ * apply to all current call sites.
+ */
+export function trackLead(params: {
+  contentName: string;
+  contentCategory?: string;
+  destination?: string;
+}): void {
+  fire("Lead", {
+    content_name: params.contentName,
+    content_category: params.contentCategory ?? "contact",
+    destination: params.destination ?? "whatsapp",
+  });
+}
+
+/**
  * TODO(mollie): Fire on Mollie payment-success webhook callback once
  * online payment is wired in. The current "pay after the clean" model
  * has no online-payment moment to attach this to, so this must not be

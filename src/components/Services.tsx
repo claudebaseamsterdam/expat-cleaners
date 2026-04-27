@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { WhatsAppButton, WhatsAppTextLink } from "@/components/WhatsAppButton";
 import { cn } from "@/lib/utils";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -58,7 +58,6 @@ const CARDS: Card[] = [
 
 const TENANCY_PREFILL =
   "Hi! I'd like a quote for an end-of-tenancy clean.";
-const TENANCY_HREF = `https://wa.me/31644683837?text=${encodeURIComponent(TENANCY_PREFILL)}`;
 
 export function Services() {
   return (
@@ -153,14 +152,13 @@ export function Services() {
           className="mt-16 text-center text-[15px] text-stone md:mt-24"
         >
           Moving out? We do end-of-tenancy cleans to landlord standard.{" "}
-          <a
-            href={TENANCY_HREF}
-            target="_blank"
-            rel="noopener noreferrer"
+          <WhatsAppTextLink
+            message={TENANCY_PREFILL}
+            trackName="whatsapp_tenancy"
             className="link-underline text-ink"
           >
             Request a quote →
-          </a>
+          </WhatsAppTextLink>
         </motion.p>
       </div>
     </section>

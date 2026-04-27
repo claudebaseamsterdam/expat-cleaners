@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { whatsappHref } from "@/components/WhatsAppButton";
+import { WhatsAppTextLink } from "@/components/WhatsAppButton";
 import { Wordmark } from "@/components/Wordmark";
 import { BRAND } from "@/lib/constants";
 
@@ -39,14 +39,12 @@ export function Footer() {
             <h4 className="caption">Contact</h4>
             <ul className="mt-5 space-y-2.5">
               <li>
-                <a
-                  href={whatsappHref()}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <WhatsAppTextLink
+                  trackName="whatsapp_footer"
                   className="text-[14px] text-ink transition-colors hover:text-botanical"
                 >
                   WhatsApp
-                </a>
+                </WhatsAppTextLink>
               </li>
               <li>
                 <a

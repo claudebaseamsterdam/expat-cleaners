@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { whatsappHref } from "@/components/WhatsAppButton";
+import { trackLead } from "@/lib/pixel";
 
 /**
  * Mobile-only sticky WhatsApp bar — fixed to the bottom of the viewport,
@@ -53,6 +54,7 @@ export function StickyWhatsApp() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Message us on WhatsApp"
+      onClick={() => trackLead({ contentName: "whatsapp_sticky" })}
       initial={{ opacity: 0, y: 8 }}
       animate={{
         opacity: visible ? 1 : 0,

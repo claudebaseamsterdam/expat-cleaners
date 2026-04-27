@@ -1,4 +1,7 @@
+"use client";
+
 import { cn } from "@/lib/utils";
+import { trackLead } from "@/lib/pixel";
 
 export const WHATSAPP_PHONE = "31644683837";
 export const WHATSAPP_DEFAULT_MESSAGE = "Hi! I'd like to book a clean.";
@@ -19,6 +22,11 @@ type Props = {
   variant?: Variant;
   className?: string;
   ariaLabel?: string;
+  /**
+   * Surface tag for the Lead event (Test Events readability).
+   * Defaults to 'whatsapp_cta' — the standard pill on hero/pricing/services.
+   */
+  trackName?: string;
 };
 
 const BASE_PRIMARY = [
@@ -52,6 +60,7 @@ export function WhatsAppButton({
   variant = "primary",
   className = "",
   ariaLabel,
+  trackName = "whatsapp_cta",
 }: Props) {
   const classes = cn(
     variant === "primary" ? BASE_PRIMARY : BASE_SMALL,
@@ -66,9 +75,42 @@ export function WhatsAppButton({
       rel="noopener noreferrer"
       className={classes}
       aria-label={ariaLabel}
+      onClick={() => trackLead({ contentName: trackName })}
     >
       <WhatsAppIcon size={iconSize} />
       <span>{children}</span>
+    </a>
+  );
+}
+
+/**
+ * Plain-text WhatsApp link (no pill). Used in the Footer contact block
+ * and the end-of-tenancy "request a quote" inline link. Behaves like
+ * an `<a>` but fires the Lead event on click.
+ */
+export function WhatsAppTextLink({
+  message,
+  className = "",
+  ariaLabel,
+  trackName,
+  children,
+}: {
+  message?: string;
+  className?: string;
+  ariaLabel?: string;
+  trackName: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <a
+      href={whatsappHref(message)}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={className}
+      aria-label={ariaLabel}
+      onClick={() => trackLead({ contentName: trackName })}
+    >
+      {children}
     </a>
   );
 }
