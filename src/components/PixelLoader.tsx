@@ -1,23 +1,24 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-import { ensurePixel, trackPageView } from "@/lib/pixel";
+import { trackPageView } from "@/lib/pixel";
 
 /**
- * Mounted once at the layout level. Loads the Meta Pixel base script
- * (no-op when NEXT_PUBLIC_META_PIXEL_ID is missing) and fires PageView
- * on every App Router pathname change — App Router does not fire any
- * navigation event by default, so we synthesize one here.
+ * Mounted once at the layout level. The root layout injects the Meta Pixel
+ * base script and fires the initial PageView. This client loader only
+ * fires PageView on subsequent client navigations.
  */
 export function PixelLoader() {
   const pathname = usePathname();
+  const firstMount = useRef(true);
 
   useEffect(() => {
-    ensurePixel();
-  }, []);
+    if (firstMount.current) {
+      firstMount.current = false;
+      return;
+    }
 
-  useEffect(() => {
     trackPageView();
   }, [pathname]);
 

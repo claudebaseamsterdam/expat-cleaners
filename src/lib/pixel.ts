@@ -1,15 +1,9 @@
 /**
  * Meta Pixel (Facebook Pixel) helper.
  *
- * Reads NEXT_PUBLIC_META_PIXEL_ID at runtime. If the env var is missing:
- *  - in dev: each tracked event is logged to the console with a [pixel] prefix
- *    so engineers can see what would have fired,
- *  - in prod: every call is a no-op so a missing Pixel ID never breaks the
- *    booking flow.
- *
- * When the env var is present, this module lazily injects the standard
- * fbq base script + initial PageView, and from then on each tracked event
- * proxies through window.fbq("track", ...).
+ * Uses the hardcoded pixel ID and lazily injects the standard pixel base
+ * script when needed. From that point on each tracked event proxies
+ * through window.fbq("track", ...).
  *
  * Wiring overview (see app/book/page.tsx, components/PixelLoader.tsx):
  *  - PageView          → fires on every route change (PixelLoader hooks
@@ -36,10 +30,7 @@ declare global {
   }
 }
 
-const PIXEL_ID =
-  typeof process !== "undefined"
-    ? process.env.NEXT_PUBLIC_META_PIXEL_ID
-    : undefined;
+const PIXEL_ID = "1941364749829024";
 
 const IS_DEV =
   typeof process !== "undefined" && process.env.NODE_ENV !== "production";
@@ -54,6 +45,10 @@ export function ensurePixel(): void {
   if (typeof window === "undefined") return;
   if (!PIXEL_ID) return;
   if (scriptInjected) return;
+  if (window.fbq) {
+    scriptInjected = true;
+    return;
+  }
   scriptInjected = true;
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -82,7 +77,8 @@ export function ensurePixel(): void {
   })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
-  window.fbq?.("init", PIXEL_ID);
+  const fbq = window.fbq as unknown as ((...args: unknown[]) => void) | undefined;
+  fbq?.("init", PIXEL_ID);
 }
 
 function fire(event: string, params?: Record<string, unknown>): void {
@@ -96,7 +92,8 @@ function fire(event: string, params?: Record<string, unknown>): void {
     return;
   }
   ensurePixel();
-  window.fbq?.("track", event, params ?? {});
+  const fbq = window.fbq as unknown as ((...args: unknown[]) => void) | undefined;
+  fbq?.("track", event, params ?? {});
 }
 
 /**
