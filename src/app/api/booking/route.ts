@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { submitBooking, type BookingPayload } from "@/services/agents";
+import { sendBookingNotification } from "@/lib/email";
 
 export const runtime = "nodejs";
 
@@ -28,6 +29,24 @@ export async function POST(request: Request) {
 
   try {
     const result = await submitBooking(payload);
+
+    // Internal booking notification. Fire-and-forget: the user-facing
+    // booking response must succeed even if email delivery fails.
+    if (result.success) {
+      const sourcePage = request.headers.get("referer");
+      const emailResult = await sendBookingNotification({
+        payload,
+        result,
+        sourcePage,
+      }).catch((err: unknown) => ({
+        ok: false as const,
+        error: err instanceof Error ? err.message : String(err),
+      }));
+      if (!emailResult.ok) {
+        console.error("[booking] notification email failed:", emailResult.error);
+      }
+    }
+
     return NextResponse.json(result);
   } catch (err) {
     return NextResponse.json(
