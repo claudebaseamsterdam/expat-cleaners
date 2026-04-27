@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowUpRight, Home, MessageCircle } from "lucide-react";
 import { whatsappLink } from "@/lib/whatsapp";
@@ -13,8 +13,16 @@ import {
   loadConfirmed,
   type ConfirmedBooking,
 } from "@/lib/booking";
+import { trackPurchase } from "@/lib/pixel";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
+
+type PaymentState =
+  | { kind: "none" }
+  | { kind: "checking" }
+  | { kind: "paid"; amountEur: number }
+  | { kind: "pending" }
+  | { kind: "failed"; reason: string };
 
 export default function ThankYouPage() {
   return (
@@ -27,11 +35,89 @@ export default function ThankYouPage() {
 function ThankYouInner() {
   const params = useSearchParams();
   const ref = params.get("ref") || "pending";
+  const paymentParam = params.get("payment");
+  const paymentId = params.get("id");
   const [confirmed, setConfirmed] = useState<ConfirmedBooking | null>(null);
+  const [payment, setPayment] = useState<PaymentState>(
+    paymentParam ? { kind: "checking" } : { kind: "none" },
+  );
+  const purchaseFiredRef = useRef(false);
 
   useEffect(() => {
     setConfirmed(loadConfirmed());
   }, []);
+
+  // Poll Mollie status on mount when the user landed via Mollie's redirect
+  // (?payment=pending&id=tr_xxx). We never trust the URL alone — the server
+  // fetches Mollie's canonical payment record. Stop on terminal states.
+  useEffect(() => {
+    if (!paymentId) {
+      // Came from a non-Mollie path (e.g. WhatsApp fallback): no payment
+      // to confirm, no Purchase to fire.
+      if (paymentParam) setPayment({ kind: "pending" });
+      return;
+    }
+    let cancelled = false;
+    let attempts = 0;
+    const maxAttempts = 12; // ~30s of polling
+
+    const tick = async () => {
+      attempts += 1;
+      try {
+        const res = await fetch(
+          `/api/mollie/status?id=${encodeURIComponent(paymentId)}`,
+          { cache: "no-store" },
+        );
+        const data = (await res.json()) as {
+          isPaid?: boolean;
+          status?: string;
+          amountEur?: number;
+        };
+        if (cancelled) return;
+        if (data.isPaid) {
+          const amountEur = data.amountEur ?? 0;
+          setPayment({ kind: "paid", amountEur });
+          if (!purchaseFiredRef.current) {
+            purchaseFiredRef.current = true;
+            const stateForPixel = loadConfirmed();
+            trackPurchase({
+              serviceId: stateForPixel?.state.serviceId ?? "unknown",
+              frequencyId: stateForPixel?.state.frequencyId ?? "once",
+              hours: stateForPixel ? calcTotal(stateForPixel.state).hours : 0,
+              value: amountEur,
+              ref,
+            });
+          }
+          return;
+        }
+        if (
+          data.status === "failed" ||
+          data.status === "canceled" ||
+          data.status === "expired"
+        ) {
+          setPayment({ kind: "failed", reason: data.status });
+          return;
+        }
+        if (attempts >= maxAttempts) {
+          setPayment({ kind: "pending" });
+          return;
+        }
+        setTimeout(tick, 2500);
+      } catch {
+        if (cancelled) return;
+        if (attempts >= maxAttempts) {
+          setPayment({ kind: "pending" });
+          return;
+        }
+        setTimeout(tick, 2500);
+      }
+    };
+
+    void tick();
+    return () => {
+      cancelled = true;
+    };
+  }, [paymentId, paymentParam, ref]);
 
   const price = confirmed ? calcTotal(confirmed.state) : null;
   const waMessage = `Hey ExpatCleaners — following up on my booking (ref ${ref}).`;
@@ -46,17 +132,52 @@ function ThankYouInner() {
           transition={{ duration: 0.7, ease: EASE }}
         >
           <p className="text-xs uppercase tracking-[0.24em] text-brand-sage">
-            Booking sent
+            {payment.kind === "paid" ? "Payment received" : "Booking sent"}
           </p>
           <h1 className="mt-4 font-display text-[clamp(48px,10vw,96px)] leading-[0.95] tracking-tight text-brand-ink">
             You&apos;re set.
           </h1>
           <p className="mt-6 max-w-xl text-lg text-brand-graphite">
-            We&apos;ve opened WhatsApp with your booking summary. A human on
-            our team will confirm your slot within 15 minutes — usually
-            faster.
+            {payment.kind === "paid"
+              ? "Payment confirmed. A human on our team will message you on WhatsApp within 15 minutes to lock in your slot."
+              : payment.kind === "failed"
+                ? "We didn't receive your payment. You can try again on WhatsApp — we'll sort it out manually."
+                : payment.kind === "checking" || payment.kind === "pending"
+                  ? "Payment received? We're confirming it. A human on our team will message you on WhatsApp within 15 minutes."
+                  : "A human on our team will confirm your slot on WhatsApp within 15 minutes."}
           </p>
         </motion.div>
+
+        {payment.kind !== "none" && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.05, ease: EASE }}
+            className="mt-6 rounded-2xl border border-brand-hairline bg-white p-5"
+          >
+            {payment.kind === "paid" ? (
+              <p className="text-sm text-brand-ink">
+                <span className="font-medium text-brand-sage">Paid.</span>{" "}
+                {`€${payment.amountEur.toFixed(2)} received via Mollie.`}
+              </p>
+            ) : payment.kind === "checking" ? (
+              <p className="text-sm text-brand-graphite">
+                Confirming your payment with Mollie…
+              </p>
+            ) : payment.kind === "pending" ? (
+              <p className="text-sm text-brand-graphite">
+                Payment received? We&apos;re confirming it. This sometimes
+                takes a minute — you&apos;ll get a WhatsApp message either
+                way.
+              </p>
+            ) : (
+              <p className="text-sm text-brand-ink">
+                Payment {payment.reason}. Message us on WhatsApp and
+                we&apos;ll sort it out.
+              </p>
+            )}
+          </motion.div>
+        )}
 
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -132,7 +253,7 @@ function ThankYouInner() {
             </li>
             <li>
               <strong className="text-brand-ink">3.</strong> Your cleaner
-              arrives. No payment online — you pay after the clean.
+              arrives at the agreed time.
             </li>
           </ol>
         </motion.div>

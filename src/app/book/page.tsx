@@ -308,7 +308,9 @@ export default function BookPage() {
     setSubmitError(null);
   }, []);
 
-  // Step 3 submit → call /api/booking, open WhatsApp, navigate to /thank-you
+  // Step 3 submit → call /api/booking, redirect to Mollie checkout. On
+  // any failure we fall back to the WhatsApp handoff so the booking is
+  // never lost; the team can take payment offline.
   const handleSubmit = useCallback(async () => {
     setSubmitting(true);
     setSubmitError(null);
@@ -332,47 +334,57 @@ export default function BookPage() {
       access_instructions: state.notesOffice,
     };
 
-    let ref: string | undefined;
-    let waMessage = buildBookingMessage(state);
-
+    let data: BookingResponse | null = null;
     try {
       const res = await fetch("/api/booking", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const data = (await res.json()) as BookingResponse;
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || "Booking submission failed");
+      const json = (await res.json()) as BookingResponse;
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Booking submission failed");
       }
-      ref = data.ref;
-      if (data.whatsappMessage) waMessage = data.whatsappMessage;
+      data = json;
     } catch (err) {
-      // Surface the error briefly but still hand off to WhatsApp so the user
-      // can finish the booking manually. This branch is conditional and only
-      // renders when /api/booking actually throws — historically that's
-      // happened in environments where USE_MOCK_AGENTS=false but the live
-      // agent layer isn't wired (see services/agents.ts: submitBooking
-      // throws "Live WhatsApp Closing integration is not wired yet"). If
-      // this message appears on every submit in production, check
-      // USE_MOCK_AGENTS in Vercel — defaulting it to true (or removing it)
-      // restores the mock booking path.
+      // Booking submission itself failed (server / network). Hand off to
+      // WhatsApp so the customer is never stuck.
       setSubmitError(
         err instanceof Error
-          ? `${err.message} — opening WhatsApp anyway.`
-          : "Couldn't reach our booking service — opening WhatsApp anyway.",
+          ? `${err.message} — opening WhatsApp instead.`
+          : "Couldn't reach our booking service — opening WhatsApp instead.",
       );
+      const waMessage = buildBookingMessage(state);
+      clearDraft();
+      window.open(whatsappLink(waMessage), "_blank", "noopener,noreferrer");
+      router.push("/thank-you");
+      return;
     }
 
+    const ref = data.ref;
     if (ref) {
       saveConfirmed({ ref, state, at: new Date().toISOString() });
     }
     clearDraft();
 
-    // Open WhatsApp in a new tab
-    window.open(whatsappLink(waMessage), "_blank", "noopener,noreferrer");
+    if (data.checkoutUrl) {
+      // Hand off to Mollie hosted checkout. Same-tab navigation so the
+      // back-button returns the user to /thank-you?payment=pending after
+      // Mollie's own redirect.
+      window.location.href = data.checkoutUrl;
+      return;
+    }
 
-    // Navigate to thank-you
+    // Booking succeeded but Mollie payment creation failed (paymentWarning
+    // set). Fall back to the WhatsApp handoff so the customer can still
+    // complete the booking; team takes payment offline.
+    setSubmitError(
+      data.paymentWarning
+        ? `Couldn't start online payment (${data.paymentWarning}) — opening WhatsApp instead.`
+        : "Couldn't start online payment — opening WhatsApp instead.",
+    );
+    const waMessage = data.whatsappMessage ?? buildBookingMessage(state);
+    window.open(whatsappLink(waMessage), "_blank", "noopener,noreferrer");
     const query = ref ? `?ref=${encodeURIComponent(ref)}` : "";
     router.push(`/thank-you${query}`);
   }, [state, price.hours, router]);

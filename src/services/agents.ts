@@ -83,6 +83,12 @@ export type BookingResponse = {
   ref?: string;
   whatsappMessage?: string;
   summary?: BookingSummary;
+  /** Mollie hosted-checkout URL — set when payment was successfully created. */
+  checkoutUrl?: string;
+  /** Mollie payment id (tr_xxx) — set when payment was successfully created. */
+  paymentId?: string;
+  /** Soft warning when booking succeeded but payment creation failed. */
+  paymentWarning?: string;
   error?: string;
 };
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { submitBooking, type BookingPayload } from "@/services/agents";
 import { sendBookingNotification } from "@/lib/email";
+import { createBookingPayment } from "@/lib/mollie";
 
 export const runtime = "nodejs";
 
@@ -29,6 +30,35 @@ export async function POST(request: Request) {
 
   try {
     const result = await submitBooking(payload);
+
+    // Create the Mollie payment. The server-side estimated_price_eur from
+    // submitBooking is the trusted total — never trust a client-supplied
+    // figure. Mollie failure is non-fatal to the booking record itself, but
+    // the user-facing flow needs to know so it can show a clear error.
+    if (result.success && result.ref && result.summary?.estimated_price_eur) {
+      try {
+        const { checkoutUrl, paymentId } = await createBookingPayment({
+          bookingRef: result.ref,
+          amountEur: result.summary.estimated_price_eur,
+          customerName: payload.name,
+          metadata: {
+            phone: payload.phone,
+            postcode: payload.postcode,
+            service_type: payload.service_type,
+            frequency: payload.frequency,
+            hours: payload.hours_estimate,
+            preferred_date: payload.preferred_date,
+            preferred_time: payload.preferred_time,
+          },
+        });
+        result.checkoutUrl = checkoutUrl;
+        result.paymentId = paymentId;
+      } catch (err) {
+        console.error("[booking] Mollie payment creation failed:", err);
+        result.paymentWarning =
+          err instanceof Error ? err.message : "Payment service unavailable";
+      }
+    }
 
     // Internal booking notification. Fire-and-forget: the user-facing
     // booking response must succeed even if email delivery fails.

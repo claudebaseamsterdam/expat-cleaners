@@ -207,3 +207,88 @@ function escape(value: string): string {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
+
+/**
+ * Send the "payment received" admin notification, fired from the Mollie
+ * webhook once a payment confirms as paid. Same brand container as the
+ * booking-submit email; different headline + payment block.
+ */
+export async function sendPaymentConfirmation(args: {
+  bookingRef: string;
+  amountEur: number;
+  paymentId: string;
+}): Promise<{ ok: true; id?: string } | { ok: false; error: string }> {
+  if (!RESEND_API_KEY) {
+    return { ok: false, error: "RESEND_API_KEY not set" };
+  }
+  const { bookingRef, amountEur, paymentId } = args;
+  const subject = `Payment received — ${bookingRef} — €${Math.round(amountEur)}`;
+  const resend = new Resend(RESEND_API_KEY);
+  const { data, error } = await resend.emails.send({
+    from: NOTIFY_FROM,
+    to: NOTIFY_TO,
+    subject,
+    html: renderPaidHtml({ bookingRef, amountEur, paymentId }),
+    text: [
+      "Payment received",
+      "",
+      `Booking:    ${bookingRef}`,
+      `Amount:     €${amountEur.toFixed(2)}`,
+      `Payment ID: ${paymentId}`,
+      "",
+      "Mollie has confirmed the payment. Confirm the slot with the customer on WhatsApp.",
+    ].join("\n"),
+  });
+  if (error) {
+    return { ok: false, error: error.message ?? String(error) };
+  }
+  return { ok: true, id: data?.id };
+}
+
+function renderPaidHtml(args: {
+  bookingRef: string;
+  amountEur: number;
+  paymentId: string;
+}): string {
+  const { bookingRef, amountEur, paymentId } = args;
+  const rows: Array<[string, string]> = [
+    ["Booking", bookingRef],
+    ["Amount", `€${amountEur.toFixed(2)}`],
+    ["Payment ID", paymentId],
+  ];
+  const rowsHtml = rows
+    .map(
+      ([label, value]) => `
+        <tr>
+          <td style="padding:14px 0;border-bottom:1px solid ${COLOR_SAND};color:${COLOR_GRAPHITE};font-family:${FONT_SANS};font-size:13px;letter-spacing:0.04em;text-transform:uppercase;width:140px;vertical-align:top;">${escape(label)}</td>
+          <td style="padding:14px 0;border-bottom:1px solid ${COLOR_SAND};color:${COLOR_INK};font-family:${FONT_SANS};font-size:15px;line-height:1.5;vertical-align:top;">${escape(value)}</td>
+        </tr>`,
+    )
+    .join("");
+  return `<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8" /><title>Payment received — ${escape(bookingRef)}</title></head>
+  <body style="margin:0;padding:0;background:${COLOR_CREAM};color:${COLOR_INK};">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${COLOR_CREAM};">
+      <tr><td align="center" style="padding:40px 16px;">
+        <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#FFFFFF;border:1px solid ${COLOR_SAND};border-radius:16px;">
+          <tr><td style="padding:32px 36px 8px;">
+            <div style="font-family:${FONT_SANS};font-size:20px;letter-spacing:-0.01em;color:${COLOR_INK};">expatcleaners<span style="color:${COLOR_SAGE};">.</span></div>
+          </td></tr>
+          <tr><td style="padding:8px 36px 0;">
+            <p style="margin:0;font-family:${FONT_SANS};font-size:12px;letter-spacing:0.18em;text-transform:uppercase;color:${COLOR_SAGE};">Payment received</p>
+            <h1 style="margin:8px 0 4px;font-family:${FONT_SERIF};font-weight:400;font-size:32px;line-height:1.1;letter-spacing:-0.01em;color:${COLOR_INK};">€${escape(amountEur.toFixed(2))}</h1>
+            <p style="margin:0;font-family:${FONT_SANS};font-size:15px;color:${COLOR_GRAPHITE};">Booking ${escape(bookingRef)} is paid.</p>
+          </td></tr>
+          <tr><td style="padding:24px 36px 8px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rowsHtml}</table>
+          </td></tr>
+          <tr><td style="padding:24px 36px 32px;">
+            <p style="margin:0;font-family:${FONT_SANS};font-size:13px;line-height:1.55;color:${COLOR_GRAPHITE};">Confirm the slot with the customer on WhatsApp.</p>
+          </td></tr>
+        </table>
+      </td></tr>
+    </table>
+  </body>
+</html>`;
+}
