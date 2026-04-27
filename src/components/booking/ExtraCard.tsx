@@ -44,9 +44,11 @@ export function ExtraCard({ extra, qty, onChange }: Props) {
       )}
     >
       <div className="flex w-full items-start justify-between">
-        <span className="text-2xl" aria-hidden>
-          {extra.icon}
-        </span>
+        <extra.Icon
+          aria-hidden
+          className="h-5 w-5 text-brand-ink"
+          strokeWidth={1.5}
+        />
         {active && !isToggle && (
           <span className="grid h-6 min-w-6 place-items-center rounded-full bg-brand-terracotta px-2 text-xs font-semibold text-white tabular-nums">
             {qty}

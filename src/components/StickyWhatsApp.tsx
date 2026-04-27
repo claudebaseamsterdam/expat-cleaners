@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { whatsappHref } from "@/components/WhatsAppButton";
 
@@ -11,8 +12,13 @@ import { whatsappHref } from "@/components/WhatsAppButton";
  * env(safe-area-inset-bottom). Hidden on desktop (md:hidden).
  */
 export function StickyWhatsApp() {
+  const pathname = usePathname();
   const [visible, setVisible] = useState(false);
   const rafId = useRef<number | null>(null);
+  // Hide on the booking page — the bottom of the viewport there is
+  // already taken by MobileSummaryBar (the booking total) and stacking
+  // two fixed-bottom CTAs creates a stack-of-bars problem on iOS.
+  const hidden = pathname?.startsWith("/book") ?? false;
 
   useEffect(() => {
     const update = () => {
@@ -38,6 +44,8 @@ export function StickyWhatsApp() {
       if (rafId.current !== null) cancelAnimationFrame(rafId.current);
     };
   }, []);
+
+  if (hidden) return null;
 
   return (
     <motion.a

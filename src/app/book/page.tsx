@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { WizardProgress } from "@/components/booking/WizardProgress";
@@ -9,8 +9,11 @@ import { Step1HomeService } from "@/components/booking/Step1HomeService";
 import { Step2Timing } from "@/components/booking/Step2Timing";
 import { Step3Review } from "@/components/booking/Step3Review";
 import { SummaryCard } from "@/components/booking/SummaryCard";
+import { BundlePicker } from "@/components/booking/BundlePicker";
+import { MobileSummaryBar } from "@/components/booking/MobileSummaryBar";
 import { whatsappLink } from "@/lib/whatsapp";
 import {
+  applyBundle as applyBundleToState,
   buildBookingMessage,
   calcTotal,
   clearDraft,
@@ -19,9 +22,14 @@ import {
   saveConfirmed,
   saveDraft,
   type BookingState,
+  type Bundle,
   type FrequencyId,
   type ServiceId,
 } from "@/lib/booking";
+import {
+  trackAddToCart,
+  trackInitiateCheckout,
+} from "@/lib/pixel";
 import type {
   BookingPayload,
   BookingResponse,
@@ -37,6 +45,7 @@ type Action =
   | { type: "home"; patch: Partial<BookingState["home"]> }
   | { type: "extra"; id: string; qty: number }
   | { type: "frequency"; id: FrequencyId }
+  | { type: "applyBundle"; bundle: Bundle }
   | { type: "date"; date: string }
   | { type: "time"; time: string }
   | { type: "waitingList"; patch: { joined?: boolean; note?: string } }
@@ -62,6 +71,8 @@ function reducer(state: BookingState, action: Action): BookingState {
     }
     case "frequency":
       return { ...state, frequencyId: action.id };
+    case "applyBundle":
+      return applyBundleToState(state, action.bundle);
     case "date":
       return { ...state, preferredDate: action.date, waitingListJoined: false };
     case "time":
@@ -99,10 +110,23 @@ export default function BookPage() {
   const [opsCheckLoading, setOpsCheckLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  // Bundle picker visibility — visible by default; either picking a
+  // bundle or clicking "I know what I need" hides it and reveals the
+  // granular service grid.
+  const [showBundles, setShowBundles] = useState(true);
+  const [selectedBundleId, setSelectedBundleId] = useState<Bundle["id"] | null>(
+    null,
+  );
 
   useEffect(() => {
     const draft = loadDraft();
-    if (draft) dispatch({ type: "hydrate", payload: draft });
+    if (draft) {
+      dispatch({ type: "hydrate", payload: draft });
+      // If the draft already has a service selected, the bundles screen
+      // would feel like a regression; jump straight to the granular grid.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (draft.serviceId) setShowBundles(false);
+    }
     setHydrated(true);
   }, []);
 
@@ -120,6 +144,55 @@ export default function BookPage() {
   const step2Valid =
     !!state.preferredDate &&
     (!!state.preferredTime || state.waitingListJoined);
+
+  // ---------- Meta Pixel events ----------
+  // AddToCart fires on the rising edge of step1Valid (postcode + service +
+  // frequency all picked). Tracked via a ref so resetting / re-validating
+  // doesn't fire it twice in the same session.
+  const addToCartFiredRef = useRef(false);
+  useEffect(() => {
+    if (!hydrated) return;
+    if (!step1Valid) return;
+    if (addToCartFiredRef.current) return;
+    if (!state.serviceId) return;
+    addToCartFiredRef.current = true;
+    trackAddToCart({
+      serviceId: state.serviceId,
+      frequencyId: state.frequencyId,
+      hours: price.hours,
+      value: price.subtotal,
+    });
+  }, [
+    hydrated,
+    step1Valid,
+    state.serviceId,
+    state.frequencyId,
+    price.hours,
+    price.subtotal,
+  ]);
+
+  // InitiateCheckout fires once when the wizard advances to Step 3
+  // (the Review screen). Tracked via a ref so back-and-forth navigation
+  // doesn't double-fire.
+  const initiateFiredRef = useRef(false);
+  useEffect(() => {
+    if (step !== 3) return;
+    if (initiateFiredRef.current) return;
+    if (!state.serviceId) return;
+    initiateFiredRef.current = true;
+    trackInitiateCheckout({
+      serviceId: state.serviceId,
+      frequencyId: state.frequencyId,
+      hours: price.hours,
+      value: price.subtotal,
+    });
+  }, [
+    step,
+    state.serviceId,
+    state.frequencyId,
+    price.hours,
+    price.subtotal,
+  ]);
 
   // ---------- Handlers ----------
 
@@ -167,6 +240,19 @@ export default function BookPage() {
       dispatch({ type: "details", patch }),
     [],
   );
+
+  const onBundleSelect = useCallback(
+    (bundle: Bundle) => {
+      dispatch({ type: "applyBundle", bundle });
+      setSelectedBundleId(bundle.id);
+      setShowBundles(false);
+    },
+    [],
+  );
+
+  const onBundleSkip = useCallback(() => {
+    setShowBundles(false);
+  }, []);
 
   // Step 2 → 3 transition: run ops-check before rendering review
   const goToReview = useCallback(async () => {
@@ -263,11 +349,18 @@ export default function BookPage() {
       if (data.whatsappMessage) waMessage = data.whatsappMessage;
     } catch (err) {
       // Surface the error briefly but still hand off to WhatsApp so the user
-      // can finish the booking manually.
+      // can finish the booking manually. This branch is conditional and only
+      // renders when /api/booking actually throws — historically that's
+      // happened in environments where USE_MOCK_AGENTS=false but the live
+      // agent layer isn't wired (see services/agents.ts: submitBooking
+      // throws "Live WhatsApp Closing integration is not wired yet"). If
+      // this message appears on every submit in production, check
+      // USE_MOCK_AGENTS in Vercel — defaulting it to true (or removing it)
+      // restores the mock booking path.
       setSubmitError(
         err instanceof Error
           ? `${err.message} — opening WhatsApp anyway.`
-          : "Something went wrong — opening WhatsApp anyway.",
+          : "Couldn't reach our booking service — opening WhatsApp anyway.",
       );
     }
 
@@ -286,7 +379,9 @@ export default function BookPage() {
 
   return (
     <div className="min-h-screen bg-brand-cream text-brand-ink">
-      <div className="mx-auto max-w-6xl px-4 pt-12 pb-32 md:pt-20 lg:pb-20">
+      {/* Bottom padding leaves room on mobile for the fixed
+          MobileSummaryBar (~80px) so its bar doesn't sit over content. */}
+      <div className="mx-auto max-w-6xl px-4 pt-12 pb-44 md:pt-20 lg:pb-20">
         <div className="mb-8">
           <p className="text-xs uppercase tracking-[0.22em] text-brand-graphite">
             Book a clean
@@ -314,7 +409,25 @@ export default function BookPage() {
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.35, ease: EASE }}
               >
-                {step === 1 && (
+                {step === 1 && showBundles && (
+                  <div className="space-y-8">
+                    <div>
+                      <h2 className="font-display text-2xl tracking-tight text-brand-ink">
+                        Pick a bundle to get started.
+                      </h2>
+                      <p className="mt-2 max-w-xl text-sm text-brand-graphite">
+                        Most clients fit one of these. You can adjust
+                        anything once selected.
+                      </p>
+                    </div>
+                    <BundlePicker
+                      selectedId={selectedBundleId}
+                      onSelect={onBundleSelect}
+                      onSkip={onBundleSkip}
+                    />
+                  </div>
+                )}
+                {step === 1 && !showBundles && (
                   <Step1HomeService
                     state={state}
                     onService={onService}
@@ -349,7 +462,7 @@ export default function BookPage() {
               </motion.div>
             </AnimatePresence>
 
-            {step < 3 ? (
+            {step < 3 && !(step === 1 && showBundles) ? (
               <WizardNav
                 canBack={step > 1}
                 canNext={step === 1 ? step1Valid : step2Valid}
@@ -358,7 +471,7 @@ export default function BookPage() {
                 loading={step === 2 && opsCheckLoading}
                 nextLabel={step === 2 ? "Review" : "Next"}
               />
-            ) : (
+            ) : step === 3 ? (
               <div className="mt-8">
                 <button
                   type="button"
@@ -368,7 +481,7 @@ export default function BookPage() {
                   ← Back to timing
                 </button>
               </div>
-            )}
+            ) : null}
           </div>
 
           <aside className="hidden lg:block">
@@ -388,6 +501,8 @@ export default function BookPage() {
           </aside>
         </div>
       </div>
+
+      <MobileSummaryBar price={price} state={state} />
     </div>
   );
 }

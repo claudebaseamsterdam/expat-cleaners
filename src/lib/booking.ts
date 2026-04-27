@@ -1,3 +1,29 @@
+import {
+  Sparkles,
+  Wind,
+  Package,
+  KeyRound,
+  BedDouble,
+  Briefcase,
+  Hammer,
+  Plug,
+  Flame,
+  Snowflake,
+  Droplets,
+  Microwave,
+  DoorOpen,
+  Square,
+  Blinds,
+  TreePine,
+  Shirt,
+  WashingMachine,
+  PaintBucket,
+  ArrowUpDown,
+  ShieldAlert,
+  FolderOpen,
+  type LucideIcon,
+} from "lucide-react";
+
 export type ServiceId =
   | "regular"
   | "deep"
@@ -7,9 +33,19 @@ export type ServiceId =
   | "office"
   | "builders";
 
-export type FrequencyId = "once" | "monthly" | "biweekly" | "weekly";
+/**
+ * Frequency tiers — three only.
+ * Monthly was dropped during the QA round 6 cleanup because it diluted
+ * the recurring-vs-one-off decision; existing monthly customers keep
+ * their rate, this just removes it from the booking flow.
+ */
+export type FrequencyId = "once" | "biweekly" | "weekly";
 
 export type HomeType = "apartment" | "house" | "studio";
+
+/** "popular" services land in the prominent top row of the picker;
+ *  "more" services collapse under a "More services ↓" toggle. */
+export type ServiceTier = "popular" | "more";
 
 export type Service = {
   id: ServiceId;
@@ -17,13 +53,14 @@ export type Service = {
   baseRate: number;
   minHours: number;
   desc: string;
-  icon: string;
+  Icon: LucideIcon;
+  tier: ServiceTier;
 };
 
 export type Extra = {
   id: string;
   label: string;
-  icon: string;
+  Icon: LucideIcon;
   price: number;
   max?: number;
 };
@@ -45,7 +82,8 @@ export const SERVICES: readonly Service[] = [
     baseRate: BASE_RATE,
     minHours: 2,
     desc: "Standard home maintenance",
-    icon: "🧽",
+    Icon: Sparkles,
+    tier: "popular",
   },
   {
     id: "deep",
@@ -53,7 +91,17 @@ export const SERVICES: readonly Service[] = [
     baseRate: BASE_RATE,
     minHours: 3,
     desc: "Every corner, every crevice",
-    icon: "✨",
+    Icon: Wind,
+    tier: "popular",
+  },
+  {
+    id: "moveout",
+    label: "Move-out cleaning",
+    baseRate: BASE_RATE,
+    minHours: 3,
+    desc: "Deposit-back standard",
+    Icon: KeyRound,
+    tier: "popular",
   },
   {
     id: "movein",
@@ -61,15 +109,8 @@ export const SERVICES: readonly Service[] = [
     baseRate: BASE_RATE,
     minHours: 3,
     desc: "Fresh-start ready",
-    icon: "📦",
-  },
-  {
-    id: "moveout",
-    label: "Move-out cleaning",
-    baseRate: BASE_RATE,
-    minHours: 3,
-    desc: "Deposit-back guarantee",
-    icon: "🔑",
+    Icon: Package,
+    tier: "more",
   },
   {
     id: "airbnb",
@@ -77,7 +118,8 @@ export const SERVICES: readonly Service[] = [
     baseRate: BASE_RATE,
     minHours: 2,
     desc: "Guest-ready reset",
-    icon: "🛏️",
+    Icon: BedDouble,
+    tier: "more",
   },
   {
     id: "office",
@@ -85,7 +127,8 @@ export const SERVICES: readonly Service[] = [
     baseRate: BASE_RATE,
     minHours: 2,
     desc: "Workspace hygiene",
-    icon: "💼",
+    Icon: Briefcase,
+    tier: "more",
   },
   {
     id: "builders",
@@ -93,27 +136,32 @@ export const SERVICES: readonly Service[] = [
     baseRate: BASE_RATE,
     minHours: 4,
     desc: "Post-renovation reset",
-    icon: "🔨",
+    Icon: Hammer,
+    tier: "more",
   },
 ];
 
+/**
+ * Extras catalog. The old `no_products` extra was removed: organic bio
+ * cleaning products are now included in every clean at no extra charge.
+ * `no_vacuum` remains as the only supplies add-on.
+ */
 export const EXTRAS: readonly Extra[] = [
-  { id: "no_vacuum", label: "No vacuum at home", icon: "🧹", price: 50, max: 1 },
-  { id: "no_products", label: "No cleaning products", icon: "🧴", price: 30, max: 1 },
-  { id: "oven", label: "Inside oven", icon: "🔥", price: 30 },
-  { id: "fridge", label: "Inside fridge", icon: "🌬️", price: 20 },
-  { id: "dishwasher", label: "Inside dishwasher", icon: "🧼", price: 20 },
-  { id: "microwave", label: "Inside microwave", icon: "🍽️", price: 20 },
-  { id: "cabinets", label: "Inside cabinets", icon: "🚪", price: 10 },
-  { id: "windows", label: "Inside windows", icon: "🪟", price: 10 },
-  { id: "blinds", label: "Blinds", icon: "✨", price: 20 },
-  { id: "balcony", label: "Balcony", icon: "🌿", price: 40 },
-  { id: "laundry", label: "In-house laundry", icon: "👕", price: 30 },
-  { id: "ironing", label: "Ironing", icon: "👔", price: 25 },
-  { id: "walls", label: "Wall wipe-down", icon: "🧱", price: 30 },
-  { id: "stairs", label: "Stairs", icon: "🪜", price: 20 },
-  { id: "mold", label: "Bathroom mould treatment", icon: "🦠", price: 50 },
-  { id: "organise", label: "Organisation", icon: "📦", price: 30 },
+  { id: "no_vacuum", label: "Bring our vacuum", Icon: Plug, price: 50, max: 1 },
+  { id: "oven", label: "Inside oven", Icon: Flame, price: 30 },
+  { id: "fridge", label: "Inside fridge", Icon: Snowflake, price: 20 },
+  { id: "dishwasher", label: "Inside dishwasher", Icon: Droplets, price: 20 },
+  { id: "microwave", label: "Inside microwave", Icon: Microwave, price: 20 },
+  { id: "cabinets", label: "Inside cabinets", Icon: DoorOpen, price: 10 },
+  { id: "windows", label: "Inside windows", Icon: Square, price: 10 },
+  { id: "blinds", label: "Blinds", Icon: Blinds, price: 20 },
+  { id: "balcony", label: "Balcony", Icon: TreePine, price: 40 },
+  { id: "laundry", label: "In-house laundry", Icon: WashingMachine, price: 30 },
+  { id: "ironing", label: "Ironing", Icon: Shirt, price: 25 },
+  { id: "walls", label: "Wall wipe-down", Icon: PaintBucket, price: 30 },
+  { id: "stairs", label: "Stairs", Icon: ArrowUpDown, price: 20 },
+  { id: "mold", label: "Bathroom mould treatment", Icon: ShieldAlert, price: 50 },
+  { id: "organise", label: "Organisation", Icon: FolderOpen, price: 30 },
 ];
 
 export const FREQUENCIES: readonly Frequency[] = [
@@ -123,13 +171,6 @@ export const FREQUENCIES: readonly Frequency[] = [
     discount: 0,
     subLabel: "No commitment",
     effectiveRate: 44,
-  },
-  {
-    id: "monthly",
-    label: "Monthly",
-    discount: 0.05,
-    subLabel: "Save 5%",
-    effectiveRate: 42,
   },
   {
     id: "biweekly",
@@ -349,15 +390,36 @@ export function buildConfirmedMessage(ref: string): string {
   return `Hey ExpatCleaners — I just confirmed my booking (ref ${ref}). Looking forward to hearing from you 🙌`;
 }
 
-const DRAFT_KEY = "ec_booking_draft";
-const CONFIRMED_KEY = "ec_booking_confirmed";
+/**
+ * localStorage draft key. Bumped to v1 (and the namespaced
+ * "expatcleaners_" prefix) so old `ec_booking_draft` payloads don't
+ * leak in with stale fields after the schema changes (frequency tier
+ * removal, supplies extra removal).
+ *
+ * Stored payload is wrapped in { state, savedAt } so we can expire
+ * stale drafts after 7 days — see loadDraft.
+ */
+const DRAFT_KEY = "expatcleaners_booking_state_v1";
+const DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const CONFIRMED_KEY = "expatcleaners_booking_confirmed_v1";
+
+type DraftEnvelope = {
+  state: BookingState;
+  savedAt: number;
+};
 
 export function loadDraft(): BookingState | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(DRAFT_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<BookingState>;
+    const env = JSON.parse(raw) as Partial<DraftEnvelope>;
+    if (!env || typeof env.savedAt !== "number" || !env.state) return null;
+    if (Date.now() - env.savedAt > DRAFT_TTL_MS) {
+      window.localStorage.removeItem(DRAFT_KEY);
+      return null;
+    }
+    const parsed = env.state;
     return {
       ...defaultBookingState,
       ...parsed,
@@ -373,7 +435,8 @@ export function loadDraft(): BookingState | null {
 export function saveDraft(state: BookingState): void {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(DRAFT_KEY, JSON.stringify(state));
+    const envelope: DraftEnvelope = { state, savedAt: Date.now() };
+    window.localStorage.setItem(DRAFT_KEY, JSON.stringify(envelope));
   } catch {
     /* ignore quota errors */
   }
@@ -451,4 +514,90 @@ export function isBookingReady(state: BookingState): boolean {
     !!state.preferredDate && state.waitingListJoined;
   if (!hasSlot && !hasWaitingList) return false;
   return true;
+}
+
+// ---------- Bundles ----------
+
+/**
+ * Pre-built bundles displayed above the granular service grid.
+ * Each bundle pre-fills a service, frequency, and a set of add-ons
+ * when the user clicks "Select" or "Customize".
+ *
+ * Indicative prices are computed for a default 1-bed / 1-bath
+ * apartment using the same calcTotal pipeline. They're shown to give
+ * the user a starting figure; the live total updates as soon as the
+ * bundle is applied.
+ */
+export type Bundle = {
+  id: "first_time" | "recurring_essentials" | "moveout";
+  name: string;
+  serviceId: ServiceId;
+  frequencyId: FrequencyId;
+  extraIds: string[];
+  bullets: [string, string, string];
+  indicativePrice: number;
+};
+
+export const BUNDLES: readonly Bundle[] = [
+  {
+    id: "first_time",
+    name: "First-time reset",
+    serviceId: "deep",
+    frequencyId: "once",
+    extraIds: ["oven", "fridge"],
+    bullets: [
+      "Deep clean — every corner",
+      "Inside oven",
+      "Inside fridge",
+    ],
+    indicativePrice: 182,
+  },
+  {
+    id: "recurring_essentials",
+    name: "Recurring essentials",
+    serviceId: "regular",
+    frequencyId: "weekly",
+    extraIds: ["windows", "mold"],
+    bullets: [
+      "Weekly regular clean",
+      "Inside windows",
+      "Bathroom mould treatment",
+    ],
+    indicativePrice: 132,
+  },
+  {
+    id: "moveout",
+    name: "Move-out package",
+    serviceId: "moveout",
+    frequencyId: "once",
+    extraIds: ["windows", "cabinets", "walls"],
+    bullets: [
+      "Move-out clean — deposit-back standard",
+      "Inside windows + cabinets",
+      "Wall wipe-down",
+    ],
+    indicativePrice: 226,
+  },
+];
+
+export const getBundle = (id: Bundle["id"]): Bundle | undefined =>
+  BUNDLES.find((b) => b.id === id);
+
+/**
+ * Apply a bundle to a booking state — sets service + frequency and
+ * adds each extra at qty 1 (without removing other extras the user
+ * may have already toggled, since the brief calls this a "starting
+ * point").
+ */
+export function applyBundle(state: BookingState, bundle: Bundle): BookingState {
+  const extras: Record<string, number> = { ...state.extras };
+  for (const id of bundle.extraIds) {
+    extras[id] = Math.max(extras[id] ?? 0, 1);
+  }
+  return {
+    ...state,
+    serviceId: bundle.serviceId,
+    frequencyId: bundle.frequencyId,
+    extras,
+  };
 }

@@ -20,23 +20,29 @@ export function StepExtras({ state, onExtra }: Props) {
             Supplies
           </h4>
           <span className="rounded-full bg-white/70 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wider text-brand-sage">
-            We bring them
+            Included
           </span>
         </div>
+        <p className="mt-1 text-sm text-brand-ink">
+          Organic bio cleaning products included in every clean — no extra
+          charge.
+        </p>
         <p className="mt-1 text-sm text-brand-graphite">
-          Don&apos;t have these at home? We&apos;ll pack them in.
+          No vacuum at home? Add ours below.
         </p>
 
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {supplies.map((e) => (
-            <ExtraCard
-              key={e.id}
-              extra={e}
-              qty={state.extras[e.id] ?? 0}
-              onChange={(qty) => onExtra(e.id, qty)}
-            />
-          ))}
-        </div>
+        {supplies.length > 0 && (
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {supplies.map((e) => (
+              <ExtraCard
+                key={e.id}
+                extra={e}
+                qty={state.extras[e.id] ?? 0}
+                onChange={(qty) => onExtra(e.id, qty)}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       <div>

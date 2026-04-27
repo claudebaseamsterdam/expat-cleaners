@@ -64,6 +64,10 @@ export function Pricing() {
           >
             Simple pricing. No surprises.
           </h2>
+          <p className="mt-5 max-w-[480px] text-[15px] leading-[1.55] text-stone">
+            Organic bio cleaning products included in every clean — no extra
+            charge.
+          </p>
         </motion.div>
 
         <div className="mt-14 grid grid-cols-1 gap-12 md:mt-20 md:grid-cols-3 md:gap-10">

@@ -68,7 +68,7 @@ export function SummaryCard({
 
       {!service ? (
         <p className="mt-3 text-sm text-brand-graphite">
-          Pick a service to see your estimate.
+          Select a service to see your estimate.
         </p>
       ) : (
         <div className="mt-5 space-y-3 text-sm">
@@ -112,12 +112,16 @@ export function SummaryCard({
                     key={extra.id}
                     className="flex items-baseline justify-between text-brand-ink/80"
                   >
-                    <span className="truncate">
-                      <span className="mr-1" aria-hidden>
-                        {extra.icon}
+                    <span className="flex min-w-0 items-center gap-2 truncate">
+                      <extra.Icon
+                        aria-hidden
+                        className="h-3.5 w-3.5 shrink-0 text-brand-graphite"
+                        strokeWidth={1.5}
+                      />
+                      <span className="truncate">
+                        {extra.label}
+                        {qty > 1 ? ` ×${qty}` : ""}
                       </span>
-                      {extra.label}
-                      {qty > 1 ? ` ×${qty}` : ""}
                     </span>
                     <span className="tabular-nums">{formatEuro(line)}</span>
                   </div>
@@ -144,8 +148,18 @@ export function SummaryCard({
         </div>
       )}
 
-      <p className="mt-4 text-xs leading-relaxed text-brand-graphite">
-        Final price confirmed on arrival. No payment until after clean.
+      <p className="mt-4 flex items-start gap-1.5 text-xs leading-relaxed text-brand-graphite">
+        <span className="text-brand-sage" aria-hidden>
+          ✓
+        </span>
+        <span>
+          Organic bio cleaning products included in every clean — no extra
+          charge.
+        </span>
+      </p>
+      <p className="mt-2 text-xs leading-relaxed text-brand-graphite">
+        Final price confirmed on arrival. Pay after the clean — no online
+        payment.
       </p>
 
       {!readOnly && (

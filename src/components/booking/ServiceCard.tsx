@@ -25,9 +25,11 @@ export function ServiceCard({ service, selected, onSelect }: Props) {
       )}
     >
       <div className="flex w-full items-start justify-between">
-        <span className="text-2xl" aria-hidden>
-          {service.icon}
-        </span>
+        <service.Icon
+          aria-hidden
+          className="h-6 w-6 text-brand-ink"
+          strokeWidth={1.5}
+        />
         <span
           aria-hidden
           className={cn(
