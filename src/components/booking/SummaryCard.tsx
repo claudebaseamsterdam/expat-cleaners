@@ -202,8 +202,7 @@ export function SummaryCard({
             </span>
           </p>
           <p className="mt-2 text-xs leading-relaxed text-brand-graphite">
-            Final price confirmed on arrival. Pay after the clean — no
-            online payment.
+            Estimate confirmed before the clean. Secure online checkout via Mollie.
           </p>
         </>
       )}

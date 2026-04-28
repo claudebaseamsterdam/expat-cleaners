@@ -174,7 +174,7 @@ export function Step3Review({
           )}
         </dl>
         <p className="mt-4 text-xs text-brand-graphite">
-          Final price confirmed before the clean. No payment online.
+          Estimate confirmed before the clean. Pay securely online to lock in your slot.
         </p>
       </div>
 
