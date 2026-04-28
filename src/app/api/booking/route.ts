@@ -12,16 +12,21 @@ export const runtime = "nodejs";
  * agent service layer), and returns the WhatsApp-ready message + summary.
  * The frontend opens `wa.me/...?text=<whatsappMessage>` from the response.
  */
+type BookingRequestBody = BookingPayload & { mode?: "whatsapp" | "pay" };
+
 export async function POST(request: Request) {
-  let payload: BookingPayload;
+  let body: BookingRequestBody;
   try {
-    payload = (await request.json()) as BookingPayload;
+    body = (await request.json()) as BookingRequestBody;
   } catch {
     return NextResponse.json(
       { success: false, error: "Invalid JSON" },
       { status: 400 },
     );
   }
+
+  const mode: "whatsapp" | "pay" = body.mode === "pay" ? "pay" : "whatsapp";
+  const payload: BookingPayload = body;
 
   // Enforce 2-hour minimum at the API boundary — never quote less.
   if (!payload.hours_estimate || payload.hours_estimate < 2) {
@@ -31,11 +36,17 @@ export async function POST(request: Request) {
   try {
     const result = await submitBooking(payload);
 
-    // Create the Mollie payment. The server-side estimated_price_eur from
-    // submitBooking is the trusted total — never trust a client-supplied
-    // figure. Mollie failure is non-fatal to the booking record itself, but
-    // the user-facing flow needs to know so it can show a clear error.
-    if (result.success && result.ref && result.summary?.estimated_price_eur) {
+    // Create the Mollie payment only when the user chose "Pay now & reserve".
+    // The server-side estimated_price_eur from submitBooking is the trusted
+    // total — never trust a client-supplied figure. Mollie failure is
+    // non-fatal to the booking record itself, but the user-facing flow
+    // needs to know so it can show a clear error.
+    if (
+      mode === "pay" &&
+      result.success &&
+      result.ref &&
+      result.summary?.estimated_price_eur
+    ) {
       try {
         const { checkoutUrl, paymentId } = await createBookingPayment({
           bookingRef: result.ref,

@@ -308,86 +308,97 @@ export default function BookPage() {
     setSubmitError(null);
   }, []);
 
-  // Step 3 submit → call /api/booking, redirect to Mollie checkout. On
-  // any failure we fall back to the WhatsApp handoff so the booking is
-  // never lost; the team can take payment offline.
-  const handleSubmit = useCallback(async () => {
-    setSubmitting(true);
-    setSubmitError(null);
+  // Step 3 submit. Two modes:
+  //   "whatsapp" → submit + open WhatsApp + go to /thank-you. Mollie is
+  //                NOT called; the team confirms the slot manually.
+  //   "pay"      → submit + redirect to Mollie hosted checkout. WhatsApp
+  //                is NOT opened pre-payment.
+  // Both share the `submitting` state, which disables both buttons and
+  // prevents the user from triggering two bookings + two admin emails.
+  const handleSubmit = useCallback(
+    async (mode: "whatsapp" | "pay") => {
+      setSubmitting(true);
+      setSubmitError(null);
 
-    const payload: BookingPayload = {
-      name: state.details.name,
-      phone: state.details.phone,
-      postcode: state.details.postalCode,
-      home_size: `${state.home.beds}b/${state.home.baths}ba · ${state.home.type}${
-        state.home.size ? ` · ${state.home.size}m²` : ""
-      }`,
-      service_type: state.frequencyId === "once" ? "one-time" : "recurring",
-      frequency: state.frequencyId,
-      hours_estimate: price.hours,
-      addons: Object.entries(state.extras)
-        .filter(([, qty]) => qty > 0)
-        .map(([id]) => id),
-      preferred_date: state.preferredDate,
-      preferred_time: state.preferredTime,
-      notes: state.notesCleaner,
-      access_instructions: state.notesOffice,
-    };
+      const payload: BookingPayload = {
+        name: state.details.name,
+        phone: state.details.phone,
+        postcode: state.details.postalCode,
+        home_size: `${state.home.beds}b/${state.home.baths}ba · ${state.home.type}${
+          state.home.size ? ` · ${state.home.size}m²` : ""
+        }`,
+        service_type: state.frequencyId === "once" ? "one-time" : "recurring",
+        frequency: state.frequencyId,
+        hours_estimate: price.hours,
+        addons: Object.entries(state.extras)
+          .filter(([, qty]) => qty > 0)
+          .map(([id]) => id),
+        preferred_date: state.preferredDate,
+        preferred_time: state.preferredTime,
+        notes: state.notesCleaner,
+        access_instructions: state.notesOffice,
+      };
 
-    let data: BookingResponse | null = null;
-    try {
-      const res = await fetch("/api/booking", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const json = (await res.json()) as BookingResponse;
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || "Booking submission failed");
+      let data: BookingResponse | null = null;
+      try {
+        const res = await fetch("/api/booking", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...payload, mode }),
+        });
+        const json = (await res.json()) as BookingResponse;
+        if (!res.ok || !json.success) {
+          throw new Error(json.error || "Booking submission failed");
+        }
+        data = json;
+      } catch (err) {
+        // Booking submission itself failed (server / network). Hand off to
+        // WhatsApp so the customer is never stuck.
+        setSubmitError(
+          err instanceof Error
+            ? `${err.message} — opening WhatsApp instead.`
+            : "Couldn't reach our booking service — opening WhatsApp instead.",
+        );
+        const waMessage = buildBookingMessage(state);
+        clearDraft();
+        window.open(whatsappLink(waMessage), "_blank", "noopener,noreferrer");
+        router.push("/thank-you");
+        return;
       }
-      data = json;
-    } catch (err) {
-      // Booking submission itself failed (server / network). Hand off to
-      // WhatsApp so the customer is never stuck.
-      setSubmitError(
-        err instanceof Error
-          ? `${err.message} — opening WhatsApp instead.`
-          : "Couldn't reach our booking service — opening WhatsApp instead.",
-      );
-      const waMessage = buildBookingMessage(state);
+
+      const ref = data.ref;
+      if (ref) {
+        saveConfirmed({ ref, state, at: new Date().toISOString() });
+      }
       clearDraft();
+
+      if (mode === "pay" && data.checkoutUrl) {
+        // Hand off to Mollie hosted checkout. Same-tab navigation so the
+        // back-button returns the user to /thank-you?payment=pending after
+        // Mollie's own redirect.
+        window.location.href = data.checkoutUrl;
+        return;
+      }
+
+      if (mode === "pay") {
+        // Pay-mode but Mollie creation failed. Fall back to the WhatsApp
+        // handoff so the customer can still complete the booking.
+        setSubmitError(
+          data.paymentWarning
+            ? `Couldn't start online payment (${data.paymentWarning}) — opening WhatsApp instead.`
+            : "Couldn't start online payment — opening WhatsApp instead.",
+        );
+      }
+
+      // WhatsApp mode (or pay-mode fallback): open WhatsApp with the
+      // booking summary, then land on /thank-you.
+      const waMessage = data.whatsappMessage ?? buildBookingMessage(state);
       window.open(whatsappLink(waMessage), "_blank", "noopener,noreferrer");
-      router.push("/thank-you");
-      return;
-    }
-
-    const ref = data.ref;
-    if (ref) {
-      saveConfirmed({ ref, state, at: new Date().toISOString() });
-    }
-    clearDraft();
-
-    if (data.checkoutUrl) {
-      // Hand off to Mollie hosted checkout. Same-tab navigation so the
-      // back-button returns the user to /thank-you?payment=pending after
-      // Mollie's own redirect.
-      window.location.href = data.checkoutUrl;
-      return;
-    }
-
-    // Booking succeeded but Mollie payment creation failed (paymentWarning
-    // set). Fall back to the WhatsApp handoff so the customer can still
-    // complete the booking; team takes payment offline.
-    setSubmitError(
-      data.paymentWarning
-        ? `Couldn't start online payment (${data.paymentWarning}) — opening WhatsApp instead.`
-        : "Couldn't start online payment — opening WhatsApp instead.",
-    );
-    const waMessage = data.whatsappMessage ?? buildBookingMessage(state);
-    window.open(whatsappLink(waMessage), "_blank", "noopener,noreferrer");
-    const query = ref ? `?ref=${encodeURIComponent(ref)}` : "";
-    router.push(`/thank-you${query}`);
-  }, [state, price.hours, router]);
+      const query = ref ? `?ref=${encodeURIComponent(ref)}` : "";
+      router.push(`/thank-you${query}`);
+    },
+    [state, price.hours, router],
+  );
 
   return (
     <div className="min-h-screen bg-brand-cream text-brand-ink">

@@ -4,6 +4,7 @@ import {
   AlertCircle,
   ArrowUpRight,
   CheckCircle2,
+  CreditCard,
   Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -22,7 +23,7 @@ type Props = {
   opsCheckLoading: boolean;
   onContact: (patch: Partial<BookingState["details"]>) => void;
   onUseAlternative: () => void;
-  onSubmit: () => void;
+  onSubmit: (mode: "whatsapp" | "pay") => void;
   submitting: boolean;
   submitError: string | null;
 };
@@ -178,25 +179,42 @@ export function Step3Review({
         </p>
       </div>
 
-      {/* Confirm CTA */}
-      <button
-        type="button"
-        onClick={onSubmit}
-        disabled={!canSubmit}
-        className="group inline-flex h-14 w-full items-center justify-center gap-2 rounded-full bg-brand-terracotta text-base font-medium text-white transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-14px_rgba(26,26,26,0.6)] disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {submitting ? (
-          <>
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Opening WhatsApp…
-          </>
-        ) : (
-          <>
-            Continue on WhatsApp
-            <ArrowUpRight className="h-4 w-4 transition-transform duration-500 group-hover:rotate-45" />
-          </>
-        )}
-      </button>
+      {/* Confirm CTAs — WhatsApp-first, with an optional reserve-by-payment
+          shortcut. Both share the `submitting` flag so a click on either
+          disables both, preventing duplicate booking + email. */}
+      <div className="space-y-3">
+        <button
+          type="button"
+          onClick={() => onSubmit("whatsapp")}
+          disabled={!canSubmit}
+          className="group inline-flex h-14 w-full items-center justify-center gap-2 rounded-full bg-brand-terracotta text-base font-medium text-white transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-14px_rgba(26,26,26,0.6)] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {submitting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Sending booking…
+            </>
+          ) : (
+            <>
+              Send booking on WhatsApp
+              <ArrowUpRight className="h-4 w-4 transition-transform duration-500 group-hover:rotate-45" />
+            </>
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => onSubmit("pay")}
+          disabled={!canSubmit}
+          className="group inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-brand-hairline bg-white text-sm font-medium text-brand-ink transition-all hover:border-brand-ink/30 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <CreditCard className="h-4 w-4" />
+          Pay now &amp; reserve
+        </button>
+        <p className="text-center text-xs leading-relaxed text-brand-graphite">
+          We confirm availability on WhatsApp first. Your slot is reserved
+          after secure payment.
+        </p>
+      </div>
       {submitError && (
         <p className="text-sm text-brand-terracotta">{submitError}</p>
       )}
