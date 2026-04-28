@@ -51,15 +51,18 @@ export type CreatedPayment = {
 export async function createBookingPayment(args: {
   bookingRef: string;
   amountEur: number;
+  description?: string;
   customerName?: string;
   metadata?: Record<string, string | number | undefined>;
 }): Promise<CreatedPayment> {
   const { bookingRef, amountEur, customerName, metadata } = args;
   const client = getClient();
   const base = siteUrl();
-  const description = customerName
-    ? `ExpatCleaners booking ${bookingRef} — ${customerName}`
-    : `ExpatCleaners booking ${bookingRef}`;
+  const description =
+    args.description ??
+    (customerName
+      ? `ExpatCleaners booking ${bookingRef} — ${customerName}`
+      : `ExpatCleaners booking ${bookingRef}`);
 
   const payment: Payment = await client.payments.create({
     amount: { currency: "EUR", value: formatAmount(amountEur) },

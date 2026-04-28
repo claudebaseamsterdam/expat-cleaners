@@ -48,9 +48,23 @@ export async function POST(request: Request) {
       result.summary?.estimated_price_eur
     ) {
       try {
+        const freqLabel =
+          payload.frequency && payload.frequency !== "once"
+            ? `${payload.service_type} ${payload.frequency}`
+            : payload.service_type;
+        const compactPostcode = (payload.postcode || "").replace(/\s+/g, "");
+        const descParts = [
+          `ExpatCleaners booking ${result.ref}`,
+          freqLabel,
+          `${payload.hours_estimate}h`,
+          compactPostcode,
+        ].filter(Boolean);
+        const description = descParts.join(" · ");
+
         const { checkoutUrl, paymentId } = await createBookingPayment({
           bookingRef: result.ref,
           amountEur: result.summary.estimated_price_eur,
+          description,
           customerName: payload.name,
           metadata: {
             phone: payload.phone,

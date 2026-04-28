@@ -367,31 +367,43 @@ export default function BookPage() {
       }
 
       const ref = data.ref;
+
+      if (mode === "pay") {
+        if (data.checkoutUrl) {
+          // Hand off to Mollie hosted checkout. Same-tab navigation so the
+          // back-button returns the user to /thank-you?payment=pending
+          // after Mollie's own redirect. Persist the booking client-side
+          // so /thank-you can render the summary, but DO NOT clear the
+          // draft until we're certain the redirect will happen — the user
+          // hasn't paid yet.
+          if (ref) {
+            saveConfirmed({ ref, state, at: new Date().toISOString() });
+          }
+          clearDraft();
+          window.location.href = data.checkoutUrl;
+          return;
+        }
+        // Pay-mode without a checkoutUrl means Mollie creation failed.
+        // Per spec: do NOT silently fall back to WhatsApp — surface the
+        // error, re-enable the buttons, and let the user retry or pick
+        // the WhatsApp button explicitly. Booking + admin email already
+        // happened server-side; the user can also recover via WhatsApp
+        // by clicking the primary button.
+        setSubmitError(
+          data.paymentWarning
+            ? `Couldn't start online payment: ${data.paymentWarning}. Try again or send the booking on WhatsApp.`
+            : "Couldn't start online payment. Try again or send the booking on WhatsApp.",
+        );
+        setSubmitting(false);
+        return;
+      }
+
+      // WhatsApp mode: open WhatsApp with the booking summary, then land
+      // on /thank-you.
       if (ref) {
         saveConfirmed({ ref, state, at: new Date().toISOString() });
       }
       clearDraft();
-
-      if (mode === "pay" && data.checkoutUrl) {
-        // Hand off to Mollie hosted checkout. Same-tab navigation so the
-        // back-button returns the user to /thank-you?payment=pending after
-        // Mollie's own redirect.
-        window.location.href = data.checkoutUrl;
-        return;
-      }
-
-      if (mode === "pay") {
-        // Pay-mode but Mollie creation failed. Fall back to the WhatsApp
-        // handoff so the customer can still complete the booking.
-        setSubmitError(
-          data.paymentWarning
-            ? `Couldn't start online payment (${data.paymentWarning}) — opening WhatsApp instead.`
-            : "Couldn't start online payment — opening WhatsApp instead.",
-        );
-      }
-
-      // WhatsApp mode (or pay-mode fallback): open WhatsApp with the
-      // booking summary, then land on /thank-you.
       const waMessage = data.whatsappMessage ?? buildBookingMessage(state);
       window.open(whatsappLink(waMessage), "_blank", "noopener,noreferrer");
       const query = ref ? `?ref=${encodeURIComponent(ref)}` : "";
