@@ -5,20 +5,35 @@
  * script when needed. From that point on each tracked event proxies
  * through window.fbq("track", ...).
  *
- * Wiring overview (see app/book/page.tsx, components/PixelLoader.tsx):
- *  - PageView          → fires on every route change (PixelLoader hooks
- *                        into next/navigation usePathname).
- *  - AddToCart         → fires the moment the user has selected a service,
- *                        a (default) duration estimate, and a frequency.
- *                        The booking page fires this exactly once per
- *                        session, on the rising edge of step1Valid.
- *  - InitiateCheckout  → fires when the user lands on Step 3 (Review).
- *  - Purchase          → TODO: wire this to a Mollie payment-success
- *                        webhook callback once the Mollie integration
- *                        is added. See brief 1.7 / 1.9 — payment is
- *                        currently "pay after the clean" and there is
- *                        no online payment step. Until that lands, this
- *                        function should not be called from the UI.
+ * Wiring overview (see app/book/page.tsx, app/thank-you/page.tsx,
+ * components/PixelLoader.tsx, components/WhatsAppButton.tsx):
+ *  - PageView          → initial fire from the layout's inline base
+ *                        script + subsequent client navigations from
+ *                        PixelLoader (usePathname effect, first-mount
+ *                        guarded so the initial load isn't double-fired).
+ *  - AddToCart         → fires once per session on the rising edge of
+ *                        step1Valid (postcode + service + frequency).
+ *  - InitiateCheckout  → fires once when the user lands on Step 3
+ *                        (Review). Single-fire guarded by
+ *                        initiateFiredRef. Fires *before* the Mollie
+ *                        redirect; the "Continue on WhatsApp" button
+ *                        itself does not re-fire it.
+ *  - Lead              → fires on direct WhatsApp CTAs only
+ *                        (WhatsAppButton, WhatsAppTextLink,
+ *                        StickyWhatsApp). Booking-funnel WhatsApp opens
+ *                        do not fire Lead — InitiateCheckout covers them.
+ *  - Purchase          → fires only on /thank-you after
+ *                        /api/mollie/status confirms isPaid === true.
+ *                        Single-fire guarded by purchaseFiredRef. The
+ *                        redirect URL alone is never trusted.
+ *
+ * NOTE on "noisy button events" in Meta Test Events:
+ * Events that show up tagged with raw button text (Book, Next, Select,
+ * Use this slot, Review, Continue on WhatsApp, Or book online) come
+ * from Meta's server-side Automatic Event Detection, not from this
+ * file. They cannot be disabled in code — turn them off in Meta Events
+ * Manager → Data Sources → [pixel] → Settings → Detected Events
+ * (or Automatic Advanced Matching, depending on the surface).
  */
 
 declare global {
