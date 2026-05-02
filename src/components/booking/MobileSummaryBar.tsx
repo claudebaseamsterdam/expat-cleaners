@@ -11,6 +11,7 @@ import {
   type PriceBreakdown,
 } from "@/lib/booking";
 import { whatsappLink } from "@/lib/whatsapp";
+import { trackCompleteRegistration } from "@/lib/pixel";
 import { formatDurationBreakdown, parseSqm } from "@/lib/pricing";
 
 type Props = {
@@ -53,6 +54,14 @@ export function MobileSummaryBar({ price, state }: Props) {
     homeType: state.home.type,
   });
   const customQuoteHref = whatsappLink(buildCustomQuoteMessage(sqm));
+  // Custom-quote (>155m²) WhatsApp clicks have no estimable price, so
+  // value is 0 — the conversion still counts in CompleteRegistration.
+  const onCustomQuoteClick = () =>
+    trackCompleteRegistration({
+      contentName: "whatsapp_custom_quote",
+      value: 0,
+      currency: "EUR",
+    });
 
   // Lock body scroll while the expanded sheet is open.
   useEffect(() => {
@@ -122,6 +131,7 @@ export function MobileSummaryBar({ price, state }: Props) {
                   </p>
                   <a
                     href={customQuoteHref}
+                    onClick={onCustomQuoteClick}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="group mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-brand-terracotta px-5 text-sm font-medium text-white transition-colors hover:bg-brand-terracotta-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-terracotta"
@@ -235,6 +245,7 @@ export function MobileSummaryBar({ price, state }: Props) {
         {isCustomQuote ? (
           <a
             href={customQuoteHref}
+            onClick={onCustomQuoteClick}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Get a custom quote on WhatsApp"

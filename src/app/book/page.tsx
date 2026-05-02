@@ -28,6 +28,7 @@ import {
 } from "@/lib/booking";
 import {
   trackAddToCart,
+  trackCompleteRegistration,
   trackInitiateCheckout,
 } from "@/lib/pixel";
 import type {
@@ -171,9 +172,10 @@ export default function BookPage() {
     price.subtotal,
   ]);
 
-  // InitiateCheckout fires once when the wizard advances to Step 3
-  // (the Review screen). Tracked via a ref so back-and-forth navigation
-  // doesn't double-fire.
+  // InitiateCheckout fires on Step 3 mount (first arrival).
+  // Fires once per session via initiateFiredRef.
+  // Note: fires slightly before user reviews the summary — acceptable for now.
+  // CompleteRegistration fires on the actual WhatsApp booking click below.
   const initiateFiredRef = useRef(false);
   useEffect(() => {
     if (step !== 3) return;
@@ -528,7 +530,15 @@ export default function BookPage() {
                 submitting={false}
                 waHref={whatsappLink(buildBookingMessage(state))}
                 onConfirm={() => {}}
-                onWhatsApp={() => {}}
+                onWhatsApp={() =>
+                  // Fire before navigation so the event isn't dropped.
+                  // The <a href={waHref}> handles the WhatsApp open itself.
+                  trackCompleteRegistration({
+                    contentName: "whatsapp_booking_sidebar",
+                    value: price.subtotal,
+                    currency: "EUR",
+                  })
+                }
                 onCoupon={(code) => dispatch({ type: "coupon", code })}
                 readOnly
               />

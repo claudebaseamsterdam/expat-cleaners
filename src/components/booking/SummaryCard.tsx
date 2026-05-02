@@ -268,7 +268,11 @@ export function SummaryCard({
         </button>
       ))}
 
-      {!readOnly && !isCustomQuote && (
+      {/* WhatsApp CTA is a contact/booking action, not an editable field —
+          it must render in readOnly mode (the booking page sidebar) too.
+          Custom-quote homes get a different CTA above, so we still skip
+          this one when isCustomQuote. */}
+      {!isCustomQuote && (
       <a
         href={waHref}
         onClick={onWhatsApp}

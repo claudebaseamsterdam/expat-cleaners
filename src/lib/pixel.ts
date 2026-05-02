@@ -7,25 +7,34 @@
  *
  * Wiring overview (see app/book/page.tsx, app/thank-you/page.tsx,
  * components/PixelLoader.tsx, components/WhatsAppButton.tsx):
- *  - PageView          → initial fire from the layout's inline base
- *                        script + subsequent client navigations from
- *                        PixelLoader (usePathname effect, first-mount
- *                        guarded so the initial load isn't double-fired).
- *  - AddToCart         → fires once per session on the rising edge of
- *                        step1Valid (postcode + service + frequency).
- *  - InitiateCheckout  → fires once when the user lands on Step 3
- *                        (Review). Single-fire guarded by
- *                        initiateFiredRef. Fires *before* the Mollie
- *                        redirect; the "Continue on WhatsApp" button
- *                        itself does not re-fire it.
- *  - Lead              → fires on direct WhatsApp CTAs only
- *                        (WhatsAppButton, WhatsAppTextLink,
- *                        StickyWhatsApp). Booking-funnel WhatsApp opens
- *                        do not fire Lead — InitiateCheckout covers them.
- *  - Purchase          → fires only on /thank-you after
- *                        /api/mollie/status confirms isPaid === true.
- *                        Single-fire guarded by purchaseFiredRef. The
- *                        redirect URL alone is never trusted.
+ *  - PageView             → initial fire from the layout's inline base
+ *                           script + subsequent client navigations from
+ *                           PixelLoader (usePathname effect, first-mount
+ *                           guarded so the initial load isn't double-fired).
+ *  - ViewContent          → fires on direct WhatsApp CTAs that signal
+ *                           soft engagement (homepage hero / pricing /
+ *                           services / footer / sticky bar). These are
+ *                           top-of-funnel touches, not conversions.
+ *  - AddToCart            → fires once per session on the rising edge of
+ *                           step1Valid (postcode + service + frequency).
+ *  - InitiateCheckout     → fires once when the user lands on Step 3
+ *                           (Review). Single-fire guarded by
+ *                           initiateFiredRef. Fires *before* the Mollie
+ *                           redirect; the booking-funnel WhatsApp button
+ *                           itself does not re-fire it.
+ *  - CompleteRegistration → fires on the booking-intent click — the
+ *                           "Send booking on WhatsApp" / "Pay now &
+ *                           reserve" buttons on Step 3, the desktop
+ *                           sidebar WhatsApp link, and the >155m²
+ *                           custom-quote WhatsApp link. The Meta-side
+ *                           conversion event for this WhatsApp-first
+ *                           campaign.
+ *  - Purchase             → fires only on /thank-you after
+ *                           /api/mollie/status confirms isPaid === true.
+ *                           Single-fire guarded by purchaseFiredRef. The
+ *                           redirect URL alone is never trusted. Kept
+ *                           for the online-payment path; WhatsApp-only
+ *                           bookings convert via CompleteRegistration.
  *
  * NOTE on "noisy button events" in Meta Test Events:
  * Events that show up tagged with raw button text (Book, Next, Select,
@@ -121,6 +130,22 @@ export function trackPageView(): void {
 }
 
 /**
+ * Fires ViewContent on a soft-engagement WhatsApp CTA — the
+ * homepage hero / pricing / services / footer / sticky bar buttons.
+ * These are top-of-funnel touches, not conversions. The booking-flow
+ * WhatsApp clicks fire CompleteRegistration instead.
+ */
+export function trackViewContent(params: {
+  contentName?: string;
+  contentCategory?: string;
+}): void {
+  fire("ViewContent", {
+    content_name: params.contentName ?? "whatsapp_enquiry",
+    content_category: params.contentCategory ?? "enquiry",
+  });
+}
+
+/**
  * Fires AddToCart when the user has chosen a service, has a duration
  * estimate, and has picked a frequency — i.e. step 1 is complete.
  * Call this exactly once per session on the rising edge of step1Valid.
@@ -172,36 +197,37 @@ export function trackInitiateCheckout(params: {
 }
 
 /**
- * Fires Lead on a "direct WhatsApp CTA" click — i.e. anywhere a user
- * taps a wa.me link that doesn't go through the booking funnel. This
- * replaces Meta's auto-collected button metadata (which surfaced as
- * messy class names in Test Events) with a clean, named event.
+ * Fires CompleteRegistration on a booking-intent click — the
+ * "Send booking on WhatsApp" / "Pay now & reserve" buttons on Step 3,
+ * the desktop sidebar WhatsApp link, and the >155m² custom-quote
+ * WhatsApp link.
  *
- * Caller passes the surface so the funnel report stays legible:
- * 'whatsapp_cta' for the standard hero/pricing/services buttons,
- * 'whatsapp_sticky' for the mobile sticky bar, 'whatsapp_footer' for
- * the footer text link, 'whatsapp_tenancy' for the end-of-tenancy
- * inline link. Default category 'contact' / destination 'whatsapp'
- * apply to all current call sites.
+ * This is the Meta-side conversion event for the WhatsApp-first
+ * campaign: most customers convert via WhatsApp without ever paying
+ * online, so Purchase alone undercounts conversions. Caller passes
+ * `contentName` to differentiate surfaces in reporting:
+ * 'whatsapp_booking_confirmed', 'online_booking_confirmed',
+ * 'whatsapp_booking_sidebar', 'whatsapp_custom_quote'.
+ *
+ * `value` is the booking subtotal in EUR; pass 0 for surfaces with
+ * no estimable price (e.g. the >155m² custom quote).
  */
-export function trackLead(params: {
-  contentName: string;
-  contentCategory?: string;
-  destination?: string;
+export function trackCompleteRegistration(params: {
+  value?: number;
+  currency?: string;
+  contentName?: string;
 }): void {
-  fire("Lead", {
-    content_name: params.contentName,
-    content_category: params.contentCategory ?? "contact",
-    destination: params.destination ?? "whatsapp",
+  fire("CompleteRegistration", {
+    value: params.value ?? 0,
+    currency: params.currency ?? "EUR",
+    content_name: params.contentName ?? "whatsapp_booking",
   });
 }
 
 /**
- * TODO(mollie): Fire on Mollie payment-success webhook callback once
- * online payment is wired in. The current "pay after the clean" model
- * has no online-payment moment to attach this to, so this must not be
- * called from the UI yet — leaving it defined so the call site is
- * obvious when Mollie lands.
+ * Fires Purchase on /thank-you after /api/mollie/status confirms the
+ * Mollie payment is paid. Online-payment path only — WhatsApp-only
+ * bookings convert via CompleteRegistration.
  */
 export function trackPurchase(params: {
   serviceId: string;

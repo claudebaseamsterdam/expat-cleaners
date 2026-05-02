@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { trackLead } from "@/lib/pixel";
+import { trackViewContent } from "@/lib/pixel";
 
 export const WHATSAPP_PHONE = "31644683837";
 export const WHATSAPP_DEFAULT_MESSAGE = "Hi! I'd like to book a clean.";
@@ -23,7 +23,7 @@ type Props = {
   className?: string;
   ariaLabel?: string;
   /**
-   * Surface tag for the Lead event (Test Events readability).
+   * Surface tag for the ViewContent event (Test Events readability).
    * Defaults to 'whatsapp_cta' — the standard pill on hero/pricing/services.
    */
   trackName?: string;
@@ -75,7 +75,7 @@ export function WhatsAppButton({
       rel="noopener noreferrer"
       className={classes}
       aria-label={ariaLabel}
-      onClick={() => trackLead({ contentName: trackName })}
+      onClick={() => trackViewContent({ contentName: trackName })}
     >
       <WhatsAppIcon size={iconSize} />
       <span>{children}</span>
@@ -86,7 +86,7 @@ export function WhatsAppButton({
 /**
  * Plain-text WhatsApp link (no pill). Used in the Footer contact block
  * and the end-of-tenancy "request a quote" inline link. Behaves like
- * an `<a>` but fires the Lead event on click.
+ * an `<a>` but fires the ViewContent event on click.
  */
 export function WhatsAppTextLink({
   message,
@@ -108,7 +108,7 @@ export function WhatsAppTextLink({
       rel="noopener noreferrer"
       className={className}
       aria-label={ariaLabel}
-      onClick={() => trackLead({ contentName: trackName })}
+      onClick={() => trackViewContent({ contentName: trackName })}
     >
       {children}
     </a>

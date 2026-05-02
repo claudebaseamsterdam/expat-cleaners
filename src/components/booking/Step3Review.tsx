@@ -14,6 +14,7 @@ import {
   type BookingState,
   type PriceBreakdown,
 } from "@/lib/booking";
+import { trackCompleteRegistration } from "@/lib/pixel";
 import type { OpsCheckResponse } from "@/services/agents";
 
 type Props = {
@@ -185,7 +186,16 @@ export function Step3Review({
       <div className="space-y-3">
         <button
           type="button"
-          onClick={() => onSubmit("whatsapp")}
+          onClick={() => {
+            // Fire CompleteRegistration *before* the WhatsApp window
+            // opens so the navigation can't drop the event in flight.
+            trackCompleteRegistration({
+              contentName: "whatsapp_booking_confirmed",
+              value: price.subtotal,
+              currency: "EUR",
+            });
+            onSubmit("whatsapp");
+          }}
           disabled={!canSubmit}
           className="group inline-flex h-14 w-full items-center justify-center gap-2 rounded-full bg-brand-terracotta text-base font-medium text-white transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-14px_rgba(26,26,26,0.6)] disabled:cursor-not-allowed disabled:opacity-60"
         >
@@ -203,7 +213,14 @@ export function Step3Review({
         </button>
         <button
           type="button"
-          onClick={() => onSubmit("pay")}
+          onClick={() => {
+            trackCompleteRegistration({
+              contentName: "online_booking_confirmed",
+              value: price.subtotal,
+              currency: "EUR",
+            });
+            onSubmit("pay");
+          }}
           disabled={!canSubmit}
           className="group inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-brand-hairline bg-white text-sm font-medium text-brand-ink transition-all hover:border-brand-ink/30 disabled:cursor-not-allowed disabled:opacity-60"
         >
