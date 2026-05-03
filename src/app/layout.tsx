@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
 import { Nav } from "@/components/Nav";
@@ -7,6 +6,8 @@ import { Footer } from "@/components/Footer";
 import { StickyWhatsApp } from "@/components/StickyWhatsApp";
 import { MotionProvider } from "@/components/MotionProvider";
 import { PixelLoader } from "@/components/PixelLoader";
+import { CookieBanner } from "@/components/CookieBanner";
+import { formatHourly, RECURRING_RATES, VAT_LABEL } from "@/lib/pricing";
 
 // Fraunces as a variable font — opsz axis for optical sizing; wght is
 // the default axis. Individual weights (400/500) applied via CSS on
@@ -30,17 +31,22 @@ const inter = Inter({
 const HERO_OG =
   "https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=1200&q=85&auto=format&fit=crop";
 
+// Phase 7.4 — BTW-explicit meta description. `VAT_LABEL.mixed` is the
+// generic "incl. BTW" used here intentionally (the spec asks for the
+// generic label in metadata even though most line items are at the 9%
+// reduced rate — keeps the description short and accurate for ads
+// that span multiple service categories).
+const META_DESCRIPTION = `Premium cleaning for Amsterdam expats. English-speaking, organic, on WhatsApp. From ${formatHourly(RECURRING_RATES.weekly.hourly)} ${VAT_LABEL.mixed}.`;
+
 export const metadata: Metadata = {
   title: "ExpatCleaners — Premium home cleaning for expats in Amsterdam",
-  description:
-    "English-speaking cleaners, organic products, booked on WhatsApp. From €36/hr. Trusted by 200+ Amsterdam expats.",
+  description: META_DESCRIPTION,
   openGraph: {
     type: "website",
     locale: "en_NL",
     title:
       "ExpatCleaners — Premium home cleaning for expats in Amsterdam",
-    description:
-      "English-speaking cleaners, organic products, booked on WhatsApp. From €36/hr. Trusted by 200+ Amsterdam expats.",
+    description: META_DESCRIPTION,
     images: [{ url: HERO_OG, width: 1200, height: 630 }],
   },
 };
@@ -56,39 +62,24 @@ export default function RootLayout({
       className={`${fraunces.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-cream text-ink">
-        <noscript>
-          <img
-            height="1"
-            width="1"
-            style={{ display: "none" }}
-            src="https://www.facebook.com/tr?id=1941364749829024&ev=PageView&noscript=1"
-            alt=""
-          />
-        </noscript>
-        <Script
-          id="meta-pixel"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              !function(f,b,e,v,n,t,s)
-              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-              n.queue=[];t=b.createElement(e);t.async=!0;
-              t.src=v;s=b.getElementsByTagName(e)[0];
-              s.parentNode.insertBefore(t,s)}(window, document,'script',
-              'https://connect.facebook.net/en_US/fbevents.js');
-              fbq('init', '1941364749829024');
-              fbq('track', 'PageView');
-            `,
-          }}
-        />
+        {/* Phase 6 — both the inline Meta Pixel base <Script> and the
+            <noscript> Pixel pingback <img> were removed from this
+            layout. They fired unconditionally on every page load, in
+            direct contradiction of the /privacy page's "Meta Pixel
+            only with consent" promise.
+            The PixelLoader below now invokes trackPageView() through
+            lib/pixel.ts's consent gate; the base script downloads only
+            after the user clicks "Accept all" in the CookieBanner.
+            (The no-JS Pixel pingback is intentionally not replaced —
+            users without JS can't grant consent, so any noscript
+            tracking would be ungated.) */}
         <MotionProvider>
           <PixelLoader />
           <Nav />
           <main className="flex-1">{children}</main>
           <Footer />
           <StickyWhatsApp />
+          <CookieBanner />
         </MotionProvider>
       </body>
     </html>

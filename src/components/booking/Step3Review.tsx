@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   AlertCircle,
   ArrowUpRight,
@@ -23,11 +24,16 @@ type Props = {
   opsCheck: OpsCheckResponse | null;
   opsCheckLoading: boolean;
   onContact: (patch: Partial<BookingState["details"]>) => void;
+  onConsent: (value: boolean) => void;
   onUseAlternative: () => void;
   onSubmit: (mode: "whatsapp" | "pay") => void;
   submitting: boolean;
   submitError: string | null;
 };
+
+// Phase 4.5 — same regex used in lib/booking.ts validateDetails. Kept
+// in sync intentionally; if you change one, change both.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function Step3Review({
   state,
@@ -35,6 +41,7 @@ export function Step3Review({
   opsCheck,
   opsCheckLoading,
   onContact,
+  onConsent,
   onUseAlternative,
   onSubmit,
   submitting,
@@ -43,9 +50,16 @@ export function Step3Review({
   const phoneDigits = state.details.phone.replace(/\D/g, "");
   const nameValid = state.details.name.trim().length >= 2;
   const phoneValid = phoneDigits.length >= 9;
+  const emailValid = EMAIL_RE.test(state.details.email);
+  // Phase 4.5 — both CTAs are gated on email validity AND the T&C
+  // consent checkbox in addition to name/phone. The booking pipeline
+  // sends a confirmation email after Mollie payment, so capturing a
+  // valid email at the form is non-negotiable.
   const canSubmit =
     nameValid &&
     phoneValid &&
+    emailValid &&
+    state.consent &&
     (!opsCheck || opsCheck.feasible) &&
     !opsCheckLoading &&
     !submitting;
@@ -147,6 +161,22 @@ export function Step3Review({
             errorMsg="Enter a valid phone number"
           />
         </div>
+        <div className="mt-4">
+          {/* Phase 4.5 — email is required so the customer gets a
+              Mollie receipt + booking confirmation. Helper text under
+              the field explains why we ask. */}
+          <Field
+            label="Email"
+            required
+            type="email"
+            value={state.details.email}
+            onChange={(v) => onContact({ email: v })}
+            placeholder="you@example.com"
+            invalid={state.details.email.length > 0 && !emailValid}
+            errorMsg="Enter a valid email address"
+            helper="For your booking confirmation and receipt"
+          />
+        </div>
       </div>
 
       {/* Summary */}
@@ -176,13 +206,52 @@ export function Step3Review({
           )}
         </dl>
         <p className="mt-4 text-xs text-brand-graphite">
-          Estimate confirmed before the clean. Pay securely online to lock in your slot.
+          Estimate confirmed before the clean. Secure online checkout via Mollie.
+        </p>
+      </div>
+
+      {/* Phase 4.5 — T&C + Privacy consent. Required by Dutch consumer
+          law for distance contracts and required by us before either
+          CTA can fire. Links open the Phase 5 /terms and /privacy
+          pages in the same tab (no _blank — easier back-button). */}
+      <div className="rounded-2xl border border-brand-hairline bg-white p-5 sm:p-6">
+        <label className="flex cursor-pointer items-start gap-3 text-sm text-brand-ink">
+          <input
+            type="checkbox"
+            checked={state.consent}
+            onChange={(e) => onConsent(e.target.checked)}
+            required
+            aria-describedby="consent-note"
+            className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-brand-hairline text-brand-terracotta focus:ring-brand-terracotta/30"
+          />
+          <span className="leading-snug">
+            I agree to the{" "}
+            <Link
+              href="/terms"
+              className="underline underline-offset-4 hover:text-brand-terracotta"
+            >
+              Terms &amp; Conditions
+            </Link>{" "}
+            and{" "}
+            <Link
+              href="/privacy"
+              className="underline underline-offset-4 hover:text-brand-terracotta"
+            >
+              Privacy Statement
+            </Link>
+            .
+          </span>
+        </label>
+        <p id="consent-note" className="mt-3 text-xs text-brand-graphite">
+          We confirm bookings on WhatsApp. You&apos;ll receive a
+          confirmation email after payment.
         </p>
       </div>
 
       {/* Confirm CTAs — WhatsApp-first, with an optional reserve-by-payment
           shortcut. Both share the `submitting` flag so a click on either
-          disables both, preventing duplicate booking + email. */}
+          disables both, preventing duplicate booking + email. Phase 4.5:
+          both also gated on the consent checkbox via canSubmit. */}
       <div className="space-y-3">
         <button
           type="button"
@@ -274,6 +343,7 @@ function Field({
   type = "text",
   invalid,
   errorMsg,
+  helper,
 }: {
   label: string;
   value: string;
@@ -283,6 +353,8 @@ function Field({
   type?: string;
   invalid?: boolean;
   errorMsg?: string;
+  /** Positive helper text shown beneath the field when valid (or empty). */
+  helper?: string;
 }) {
   const id = `c-${label.toLowerCase().replace(/\s+/g, "-")}`;
   return (
@@ -307,9 +379,11 @@ function Field({
             : "border-brand-hairline focus:border-brand-sage focus:ring-brand-sage/30",
         )}
       />
-      {invalid && errorMsg && (
+      {invalid && errorMsg ? (
         <p className="mt-1 text-xs text-brand-terracotta">{errorMsg}</p>
-      )}
+      ) : helper ? (
+        <p className="mt-1 text-xs text-brand-graphite">{helper}</p>
+      ) : null}
     </div>
   );
 }

@@ -24,10 +24,21 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import {
+  APARTMENT_DEEP_PRICE,
+  APARTMENT_MOVE_PRICE,
   calculateDuration,
+  findAddon,
+  formatEur,
+  ONE_OFF_RATE,
   parseSqm,
+  RECURRING_RATES,
+  SERVICE_MINIMUMS,
+  SERVICE_VAT,
+  VACUUM_RENTAL,
+  vatLabelForBooking,
   type DurationResult,
 } from "@/lib/pricing";
+import { formatLocalDate } from "@/lib/date";
 
 export type ServiceId =
   | "regular"
@@ -67,6 +78,13 @@ export type Extra = {
   label: string;
   Icon: LucideIcon;
   price: number;
+  /**
+   * VAT rate applied to this add-on. 0.21 for outdoor / specialist
+   * (e.g. balcony, exterior windows); 0.09 for everything inside the
+   * home. Sourced from pricing.ts ADD_ONS / VACUUM_RENTAL — never
+   * hand-rolled.
+   */
+  vat: number;
   max?: number;
 };
 
@@ -78,14 +96,22 @@ export type Frequency = {
   effectiveRate: number;
 };
 
-export const BASE_RATE = 44;
+/**
+ * Per-service `baseRate` is currently the one-off hourly rate for every
+ * service. Phase 1.3 stopped using it for labour calc (the frequency
+ * rate is the rate now); it remains in the breakdown surface for
+ * downstream consumers and will be replaced with fixed-package pricing
+ * for deep / move-out in Phase 4. `minHours` is sourced from pricing.ts
+ * SERVICE_MINIMUMS so the booking flow and the homepage agree.
+ */
+export const BASE_RATE = ONE_OFF_RATE.hourly;
 
 export const SERVICES: readonly Service[] = [
   {
     id: "regular",
     label: "Regular cleaning",
     baseRate: BASE_RATE,
-    minHours: 2,
+    minHours: SERVICE_MINIMUMS.regular,
     desc: "Standard home maintenance",
     Icon: Sparkles,
     tier: "popular",
@@ -94,7 +120,7 @@ export const SERVICES: readonly Service[] = [
     id: "deep",
     label: "Deep cleaning",
     baseRate: BASE_RATE,
-    minHours: 3,
+    minHours: SERVICE_MINIMUMS.deep,
     desc: "Every corner, every crevice",
     Icon: Wind,
     tier: "popular",
@@ -103,7 +129,7 @@ export const SERVICES: readonly Service[] = [
     id: "moveout",
     label: "Move-out cleaning",
     baseRate: BASE_RATE,
-    minHours: 3,
+    minHours: SERVICE_MINIMUMS.moveout,
     desc: "Deposit-back standard",
     Icon: KeyRound,
     tier: "popular",
@@ -112,7 +138,7 @@ export const SERVICES: readonly Service[] = [
     id: "movein",
     label: "Move-in cleaning",
     baseRate: BASE_RATE,
-    minHours: 3,
+    minHours: SERVICE_MINIMUMS.movein,
     desc: "Fresh-start ready",
     Icon: Package,
     tier: "more",
@@ -121,7 +147,7 @@ export const SERVICES: readonly Service[] = [
     id: "airbnb",
     label: "Airbnb turnover",
     baseRate: BASE_RATE,
-    minHours: 2,
+    minHours: SERVICE_MINIMUMS.airbnb,
     desc: "Guest-ready reset",
     Icon: BedDouble,
     tier: "more",
@@ -130,7 +156,7 @@ export const SERVICES: readonly Service[] = [
     id: "office",
     label: "Office cleaning",
     baseRate: BASE_RATE,
-    minHours: 2,
+    minHours: SERVICE_MINIMUMS.office,
     desc: "Workspace hygiene",
     Icon: Briefcase,
     tier: "more",
@@ -139,7 +165,7 @@ export const SERVICES: readonly Service[] = [
     id: "builders",
     label: "After-builders",
     baseRate: BASE_RATE,
-    minHours: 4,
+    minHours: SERVICE_MINIMUMS.builders,
     desc: "Post-renovation reset",
     Icon: Hammer,
     tier: "more",
@@ -149,49 +175,101 @@ export const SERVICES: readonly Service[] = [
 /**
  * Extras catalog. The old `no_products` extra was removed: organic bio
  * cleaning products are now included in every clean at no extra charge.
- * `no_vacuum` remains as the only supplies add-on.
+ * `no_vacuum` remains as the only supplies add-on (rental).
+ *
+ * Phase 2: every `price` is sourced from `lib/pricing.ts`. Booking-
+ * internal IDs (e.g. `windows`, `mold`, `organise`) map to canonical
+ * pricing.ts ADD_ONS IDs (e.g. `windows_in`, `mould`, `organisation`)
+ * via the second arg to findAddon(). The EXTRAS shape (with Icon) is
+ * kept; only the numbers are now derived. Phase 4 will likely rename
+ * the booking-internal IDs to match the canonical ones.
  */
+// Helper so each row is a one-liner that pulls both price AND vat from
+// pricing.ts. Booking-internal id (used for state.extras keys, BUNDLES,
+// and existing UI logic) maps to the canonical pricing.ts ADD_ONS id.
+const a = (id: string) => {
+  const ax = findAddon(id);
+  return { price: ax.price, vat: ax.vat };
+};
+
 export const EXTRAS: readonly Extra[] = [
-  { id: "no_vacuum", label: "Bring our vacuum", Icon: Plug, price: 50, max: 1 },
-  { id: "oven", label: "Inside oven", Icon: Flame, price: 30 },
-  { id: "fridge", label: "Inside fridge", Icon: Snowflake, price: 20 },
-  { id: "dishwasher", label: "Inside dishwasher", Icon: Droplets, price: 20 },
-  { id: "microwave", label: "Inside microwave", Icon: Microwave, price: 20 },
-  { id: "cabinets", label: "Inside cabinets", Icon: DoorOpen, price: 10 },
-  { id: "windows", label: "Inside windows", Icon: Square, price: 10 },
-  { id: "blinds", label: "Blinds", Icon: Blinds, price: 20 },
-  { id: "balcony", label: "Balcony", Icon: TreePine, price: 40 },
-  { id: "laundry", label: "In-house laundry", Icon: WashingMachine, price: 30 },
-  { id: "ironing", label: "Ironing", Icon: Shirt, price: 25 },
-  { id: "walls", label: "Wall wipe-down", Icon: PaintBucket, price: 30 },
-  { id: "stairs", label: "Stairs", Icon: ArrowUpDown, price: 20 },
-  { id: "mold", label: "Bathroom mould treatment", Icon: ShieldAlert, price: 50 },
-  { id: "organise", label: "Organisation", Icon: FolderOpen, price: 30 },
+  { id: "no_vacuum", label: VACUUM_RENTAL.label, Icon: Plug, price: VACUUM_RENTAL.price, vat: VACUUM_RENTAL.vat, max: 1 },
+  { id: "oven", label: "Inside oven", Icon: Flame, ...a("oven") },
+  { id: "fridge", label: "Inside fridge", Icon: Snowflake, ...a("fridge") },
+  { id: "dishwasher", label: "Inside dishwasher", Icon: Droplets, ...a("dishwasher") },
+  { id: "microwave", label: "Inside microwave", Icon: Microwave, ...a("microwave") },
+  { id: "cabinets", label: "Inside cabinets", Icon: DoorOpen, ...a("cabinets") },
+  { id: "windows", label: "Inside windows", Icon: Square, ...a("windows_in") },
+  { id: "blinds", label: "Blinds", Icon: Blinds, ...a("blinds") },
+  { id: "balcony", label: "Balcony", Icon: TreePine, ...a("balcony") },
+  { id: "laundry", label: "In-house laundry", Icon: WashingMachine, ...a("laundry") },
+  { id: "ironing", label: "Ironing", Icon: Shirt, ...a("ironing") },
+  { id: "walls", label: "Wall wipe-down", Icon: PaintBucket, ...a("walls") },
+  { id: "stairs", label: "Stairs", Icon: ArrowUpDown, ...a("stairs") },
+  { id: "mold", label: "Bathroom mould treatment", Icon: ShieldAlert, ...a("mould") },
+  { id: "organise", label: "Organisation", Icon: FolderOpen, ...a("organisation") },
 ];
 
+/**
+ * Frequency picker — per-frequency hourly rates, no discount math.
+ *
+ * Rates come from pricing.ts (ONE_OFF_RATE for one-time, RECURRING_RATES
+ * for bi-weekly / weekly). Edit there, never here.
+ *
+ * `discount` stays on the type for backwards-compat with the
+ * SummaryCard / MobileSummaryBar guards (`hasDiscount = laborSaved >
+ * 0.01`); always 0 here, so those guards naturally hide the discount
+ * row. `effectiveRate` is the sole source of truth for labour pricing.
+ */
 export const FREQUENCIES: readonly Frequency[] = [
   {
     id: "once",
-    label: "One-time",
+    label: ONE_OFF_RATE.label,
     discount: 0,
     subLabel: "No commitment",
-    effectiveRate: 44,
+    effectiveRate: ONE_OFF_RATE.hourly,
   },
   {
     id: "biweekly",
-    label: "Bi-weekly",
-    discount: 0.1,
-    subLabel: "Save 10% · €40/hr",
-    effectiveRate: 40,
+    label: RECURRING_RATES.biweekly.label,
+    discount: 0,
+    subLabel: "Same cleaner",
+    effectiveRate: RECURRING_RATES.biweekly.hourly,
   },
   {
     id: "weekly",
-    label: "Weekly",
-    discount: 0.15,
-    subLabel: "Save 15% · €36/hr · Best value",
-    effectiveRate: 36,
+    label: RECURRING_RATES.weekly.label,
+    discount: 0,
+    subLabel: "Best value",
+    effectiveRate: RECURRING_RATES.weekly.hourly,
   },
 ];
+
+/**
+ * Phase 7.3 — `/book?service=…` deep-link mapping. Each query value
+ * pre-selects a service tile and a frequency. Recurring → weekly
+ * (cheapest cadence); other params fall back to one-time which matches
+ * `defaultBookingState.frequencyId`. The booking page applies this on
+ * mount and then strips the param so a refresh doesn't override later
+ * manual choices.
+ */
+const SERVICE_QUERY_MAP: Record<
+  string,
+  { serviceId: ServiceId; frequencyId: FrequencyId }
+> = {
+  recurring: { serviceId: "regular", frequencyId: "weekly" },
+  oneoff: { serviceId: "regular", frequencyId: "once" },
+  deep: { serviceId: "deep", frequencyId: "once" },
+  moveout: { serviceId: "moveout", frequencyId: "once" },
+  movein: { serviceId: "movein", frequencyId: "once" },
+};
+
+export function parseServiceQueryParam(
+  value: string | null | undefined,
+): { serviceId: ServiceId; frequencyId: FrequencyId } | null {
+  if (!value) return null;
+  return SERVICE_QUERY_MAP[value] ?? null;
+}
 
 export const TIME_SLOTS = ["09:00", "12:00", "14:00", "16:00"] as const;
 export type TimeSlot = (typeof TIME_SLOTS)[number];
@@ -205,8 +283,10 @@ export const HOME_TYPES: { id: HomeType; label: string }[] = [
 export const FULLY_BOOKED_DATES: readonly string[] = [
   // Mock fully-booked dates (will be replaced by real availability API later)
   // Dates relative to the "today" in dev so the waiting-list flow is visible.
-  new Date(Date.now() + 2 * 86400_000).toISOString().slice(0, 10),
-  new Date(Date.now() + 6 * 86400_000).toISOString().slice(0, 10),
+  // Use formatLocalDate so these match the calendar's local-date keys —
+  // toISOString().slice(0,10) would shift CEST midnight back a UTC day.
+  formatLocalDate(new Date(Date.now() + 2 * 86400_000)),
+  formatLocalDate(new Date(Date.now() + 6 * 86400_000)),
 ];
 
 export function isDateFullyBooked(date: string): boolean {
@@ -324,10 +404,15 @@ export function calcTotal(state: BookingState): PriceBreakdown {
   const isCustomQuote = duration.kind === "custom-quote";
   const hours = duration.kind === "estimate" ? duration.hours : 0;
 
+  // Phase 1.3: labour is computed directly from the frequency's hourly
+  // rate (€58 / €46 / €42). No more "subtract a discount from a €44
+  // base" math — the frequency rate IS the rate. baseRate stays in the
+  // breakdown for downstream consumers (Phase 4 will replace it with
+  // service-specific package pricing for deep / move-out).
   const baseRate = service?.baseRate ?? BASE_RATE;
-  const labor = isCustomQuote ? 0 : baseRate * hours;
-  const laborDiscounted = labor * (1 - frequency.discount);
-  const laborSaved = labor - laborDiscounted;
+  const labor = isCustomQuote ? 0 : frequency.effectiveRate * hours;
+  const laborDiscounted = labor;
+  const laborSaved = 0;
 
   const addonLines: AddonLine[] = Object.entries(state.extras)
     .map(([id, qty]) => {
@@ -359,6 +444,27 @@ export function calcTotal(state: BookingState): PriceBreakdown {
   };
 }
 
+/**
+ * Per-booking VAT items list — service rate + each selected add-on's
+ * VAT rate. Feed to pricing.ts `vatLabelForBooking` / `vatFootnoteText`
+ * to choose between the single-rate ("9%" / "21%") and mixed-rate
+ * ("Interior 9%, exterior 21%") labels.
+ */
+export function vatItemsForBooking(
+  state: BookingState,
+): Array<{ vat: number }> {
+  const items: Array<{ vat: number }> = [];
+  if (state.serviceId) {
+    items.push({ vat: SERVICE_VAT[state.serviceId] });
+  }
+  for (const [id, qty] of Object.entries(state.extras)) {
+    if (qty <= 0) continue;
+    const extra = getExtra(id);
+    if (extra) items.push({ vat: extra.vat });
+  }
+  return items;
+}
+
 export const formatEuro = (n: number): string => {
   const rounded = Math.round(n * 100) / 100;
   return Number.isInteger(rounded) ? `€${rounded}` : `€${rounded.toFixed(2)}`;
@@ -378,6 +484,30 @@ export function buildCustomQuoteMessage(sqm: number | null): string {
   return `Hi! I'd like a quote for a ${sizeLabel} home.`;
 }
 
+/**
+ * Phase 4.6 — WhatsApp deep-link message body. Per the brief:
+ *
+ *   Hey ExpatCleaners — I'd like to book:
+ *
+ *   * <service> · <hours>h · <frequency>
+ *   * Preferred: <YYYY-MM-DD> <HH:MM>
+ *   * <address>, <postcode>
+ *
+ *   Total estimate: €<total> (<vatLabel>)
+ *   Reach me on: <phone> <email>
+ *
+ * Notes:
+ *  - Address bullet is its own line (the spec line accidentally
+ *    smushed it onto the same line as the total — split here for
+ *    legibility on WhatsApp).
+ *  - Extras and waiting-list are still emitted as their own bullets
+ *    when present.
+ *  - vatLabel is whichever of "incl. 9% BTW" / "incl. 21% BTW" /
+ *    "incl. BTW" applies to the booking (interior + exterior add-ons
+ *    yield the mixed label).
+ *  - Date is `state.preferredDate` which is already YYYY-MM-DD in the
+ *    user's local timezone (Phase 1.1 fixed the toISOString bug).
+ */
 export function buildBookingMessage(state: BookingState): string {
   const price = calcTotal(state);
   const { service, frequency, hours, addonLines, subtotal, isCustomQuote } =
@@ -393,30 +523,43 @@ export function buildBookingMessage(state: BookingState): string {
 
   const lines: string[] = [];
   lines.push("Hey ExpatCleaners — I'd like to book:");
+  lines.push("");
   lines.push(
-    `- ${service.label} · ${formatHours(hours)} · ${frequency.label}`,
+    `* ${service.label} · ${formatHours(hours)} · ${frequency.label}`,
   );
-  if (state.details.address) {
-    lines.push(
-      `- ${state.details.address}${state.details.postalCode ? `, ${state.details.postalCode}` : ""}`,
-    );
+  if (state.preferredDate || state.preferredTime) {
+    const datePart = state.preferredDate || "—";
+    const timePart = state.preferredTime ? ` ${state.preferredTime}` : "";
+    lines.push(`* Preferred: ${datePart}${timePart}`);
+  }
+  if (state.details.address || state.details.postalCode) {
+    const parts = [state.details.address, state.details.postalCode]
+      .map((s) => (s ?? "").trim())
+      .filter(Boolean);
+    lines.push(`* ${parts.join(", ")}`);
   }
   if (addonLines.length > 0) {
     const list = addonLines
       .map((l) => `${l.extra.label}${l.qty > 1 ? ` ×${l.qty}` : ""}`)
       .join(", ");
-    lines.push(`- Extras: ${list}`);
-  }
-  if (state.preferredDate || state.preferredTime) {
-    lines.push(
-      `- Preferred: ${state.preferredDate || "—"} ${state.preferredTime || ""}`.trim(),
-    );
+    lines.push(`* Extras: ${list}`);
   }
   if (state.waitingListJoined) {
-    lines.push("- On waiting list for earliest opening");
+    lines.push("* On waiting list for earliest opening");
   }
-  lines.push(`Total estimate: ${formatEuro(subtotal)}`);
-  if (state.details.name) lines.push(`— ${state.details.name}`);
+  lines.push("");
+  const vatLabel = vatLabelForBooking(vatItemsForBooking(state));
+  lines.push(`Total estimate: ${formatEuro(subtotal)} (${vatLabel})`);
+
+  // "Reach me on:" — only emit when at least one contact field is set.
+  // Phone and email are space-separated per spec.
+  const reach = [state.details.phone, state.details.email]
+    .map((s) => (s ?? "").trim())
+    .filter(Boolean)
+    .join(" ");
+  if (reach) {
+    lines.push(`Reach me on: ${reach}`);
+  }
 
   return lines.join("\n");
 }
@@ -570,7 +713,15 @@ export type Bundle = {
   frequencyId: FrequencyId;
   extraIds: string[];
   bullets: [string, string, string];
-  indicativePrice: number;
+  /**
+   * Price line shown under the bundle's bullets. Two patterns:
+   *  - Anchor + add-ons   → e.g. "€295 + add-ons" (First-time reset,
+   *    Move-out package). The anchor is the apartment-tier fixed
+   *    package price; add-ons accumulate on top in the live total.
+   *  - Live-total-only    → "Live total updates after you select"
+   *    (Recurring essentials — hourly product, no fixed anchor).
+   */
+  priceLine: string;
 };
 
 export const BUNDLES: readonly Bundle[] = [
@@ -581,11 +732,11 @@ export const BUNDLES: readonly Bundle[] = [
     frequencyId: "once",
     extraIds: ["oven", "fridge"],
     bullets: [
-      "Deep clean — every corner",
+      "Apartment Deep Clean",
       "Inside oven",
       "Inside fridge",
     ],
-    indicativePrice: 182,
+    priceLine: `${formatEur(APARTMENT_DEEP_PRICE)} + add-ons`,
   },
   {
     id: "recurring_essentials",
@@ -594,11 +745,11 @@ export const BUNDLES: readonly Bundle[] = [
     frequencyId: "weekly",
     extraIds: ["windows", "mold"],
     bullets: [
-      "Weekly regular clean",
+      "Weekly clean",
       "Inside windows",
-      "Bathroom mould treatment",
+      "Bathroom mould",
     ],
-    indicativePrice: 132,
+    priceLine: "Live total updates after you select",
   },
   {
     id: "moveout",
@@ -607,11 +758,11 @@ export const BUNDLES: readonly Bundle[] = [
     frequencyId: "once",
     extraIds: ["windows", "cabinets", "walls"],
     bullets: [
-      "Move-out clean — deposit-back standard",
+      "Apartment Move Clean",
       "Inside windows + cabinets",
       "Wall wipe-down",
     ],
-    indicativePrice: 226,
+    priceLine: `${formatEur(APARTMENT_MOVE_PRICE)} + add-ons`,
   },
 ];
 

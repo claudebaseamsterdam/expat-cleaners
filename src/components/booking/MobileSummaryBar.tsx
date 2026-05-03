@@ -7,12 +7,18 @@ import { cn } from "@/lib/utils";
 import {
   buildCustomQuoteMessage,
   formatEuro,
+  vatItemsForBooking,
   type BookingState,
   type PriceBreakdown,
 } from "@/lib/booking";
 import { whatsappLink } from "@/lib/whatsapp";
 import { trackCompleteRegistration } from "@/lib/pixel";
-import { formatDurationBreakdown, parseSqm } from "@/lib/pricing";
+import {
+  formatDurationBreakdown,
+  formatHourly,
+  parseSqm,
+  vatFootnoteText,
+} from "@/lib/pricing";
 
 type Props = {
   price: PriceBreakdown;
@@ -54,6 +60,14 @@ export function MobileSummaryBar({ price, state }: Props) {
     homeType: state.home.type,
   });
   const customQuoteHref = whatsappLink(buildCustomQuoteMessage(sqm));
+  // Phase 4.4 — same VAT footnote + hourly-rate annotation as the
+  // desktop SummaryCard. Mobile sheet mirrors the desktop right rail.
+  const vatLine = hasService
+    ? vatFootnoteText(vatItemsForBooking(state))
+    : null;
+  const breakdownWithRate = hasService
+    ? `${breakdown} · ${frequency.label} · ${formatHourly(frequency.effectiveRate)}`
+    : breakdown;
   // Custom-quote (>155m²) WhatsApp clicks have no estimable price, so
   // value is 0 — the conversion still counts in CompleteRegistration.
   const onCustomQuoteClick = () =>
@@ -153,7 +167,7 @@ export function MobileSummaryBar({ price, state }: Props) {
                         {service.label}
                       </div>
                       <div className="mt-0.5 text-xs text-brand-graphite">
-                        {breakdown} · {frequency.label}
+                        {breakdownWithRate}
                       </div>
                     </div>
                     {hasDiscount ? (
@@ -229,6 +243,11 @@ export function MobileSummaryBar({ price, state }: Props) {
                 Estimate confirmed before the clean. Secure online checkout
                 via Mollie.
               </p>
+              {vatLine && (
+                <p className="mt-2 text-xs leading-relaxed text-brand-graphite">
+                  {vatLine}
+                </p>
+              )}
             </div>
           </motion.div>
         )}

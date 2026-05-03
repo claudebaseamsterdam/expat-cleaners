@@ -1,9 +1,18 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { WhatsAppButton, WhatsAppTextLink } from "@/components/WhatsAppButton";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { cn } from "@/lib/utils";
+import {
+  DEEP_CLEAN_FROM_PRICE,
+  MOVE_FROM_PRICE,
+  ONE_OFF_RATE,
+  RECURRING_RATES,
+  formatEur,
+  formatHourly,
+} from "@/lib/pricing";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -19,11 +28,15 @@ type Card = {
   featured?: boolean;
 };
 
+// All numeric prices come from lib/pricing.ts. Phase 3 copy: recurring
+// shows the entry-tier hourly rate, one-off shows the one-off hourly +
+// 2-hour minimum, deep clean now shows the from-price for the cheapest
+// fixed package (studio = €225) instead of an hourly figure.
 const CARDS: Card[] = [
   {
     id: "recurring",
     name: "Recurring cleaning",
-    priceLine: "From €36/hr · same cleaner every time",
+    priceLine: `From ${formatHourly(RECURRING_RATES.weekly.hourly)} · same cleaner every visit`,
     body: "Weekly or bi-weekly, same cleaner each time. Organic supplies included.",
     image:
       "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1800&q=85&auto=format&fit=crop",
@@ -35,7 +48,7 @@ const CARDS: Card[] = [
   {
     id: "oneoff",
     name: "One-off cleaning",
-    priceLine: "€44/hr · no commitment",
+    priceLine: `${formatHourly(ONE_OFF_RATE.hourly)} · ${ONE_OFF_RATE.minimumHours}-hour minimum`,
     body: "For a single reset — before guests, after a party, when the week got away from you.",
     image:
       "https://images.unsplash.com/photo-1556909114-44e3e70034e2?w=1800&q=85&auto=format&fit=crop",
@@ -46,7 +59,7 @@ const CARDS: Card[] = [
   {
     id: "deep",
     name: "Deep clean",
-    priceLine: "€44/hr · min. 3 hours",
+    priceLine: `From ${formatEur(DEEP_CLEAN_FROM_PRICE)} · fixed price`,
     body: "Inside appliances, skirting boards, behind the things no one ever reaches.",
     image:
       "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=1800&q=85&auto=format&fit=crop",
@@ -56,8 +69,11 @@ const CARDS: Card[] = [
   },
 ];
 
-const TENANCY_PREFILL =
-  "Hi! I'd like a quote for an end-of-tenancy clean.";
+// Phase 3.2: end-of-tenancy footnote replaced with a fixed-price
+// move-package CTA that deep-links into the booking flow. The old
+// WhatsApp-quote path is gone — Move-In / Move-Out are now packaged
+// services with a number on the homepage.
+const MOVE_FOOTNOTE_PRICE = formatEur(MOVE_FROM_PRICE);
 
 export function Services() {
   return (
@@ -151,14 +167,14 @@ export function Services() {
           transition={{ duration: 0.6, ease: EASE }}
           className="mt-16 text-center text-[15px] text-stone md:mt-24"
         >
-          Moving out? We do end-of-tenancy cleans to landlord standard.{" "}
-          <WhatsAppTextLink
-            message={TENANCY_PREFILL}
-            trackName="whatsapp_tenancy"
+          Moving out? Move-in or move-out cleans from {MOVE_FOOTNOTE_PRICE},
+          fixed price, deposit-back guarantee.{" "}
+          <Link
+            href="/book?service=moveout"
             className="link-underline text-ink"
           >
-            Request a quote →
-          </WhatsAppTextLink>
+            See packages →
+          </Link>
         </motion.p>
       </div>
     </section>

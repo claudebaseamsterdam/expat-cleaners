@@ -41,11 +41,10 @@ export function StepFrequency({ state, onSelect }: Props) {
               <span className="font-display text-lg tracking-tight text-brand-ink">
                 {f.label}
               </span>
-              {f.discount > 0 && (
-                <span className="rounded-full bg-brand-sage/15 px-2 py-0.5 text-xs font-medium text-brand-sage">
-                  −{Math.round(f.discount * 100)}%
-                </span>
-              )}
+              {/* Phase 1.3: dropped the −10% / −15% chip. Frequencies
+                  now have their own hourly rate (no discount math), so
+                  there's nothing to render in the savings slot. The
+                  "Best value" amber pill above still calls out weekly. */}
             </div>
             <span className="text-xs text-brand-graphite">{f.subLabel}</span>
             <span className="mt-auto pt-3 font-display text-lg tabular-nums text-brand-ink">

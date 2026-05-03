@@ -1,6 +1,352 @@
 /**
- * Duration calculation — single source of truth.
+ * Single source of truth for all customer-facing pricing AND for the
+ * duration ladder used to translate a home into estimated hours.
  *
+ * All prices are in euros, INCLUDING Dutch VAT (BTW) at the rate
+ * indicated on each item.
+ *
+ * VAT rates per Belastingdienst (Dutch Tax Authority):
+ *   9%  = cleaning INSIDE the home (huishoudelijke schoonmaak —
+ *         recurring, deep, move-in/out, kitchen, bathroom, inside
+ *         windows, inside oven/fridge/cabinets, ironing, laundry).
+ *   21% = exterior cleaning, specialist work with specialised
+ *         equipment (exterior windows, balcony, façade, terrace,
+ *         post-construction / after-builders, fire/water-damage).
+ *
+ * UI labels are pulled from `VAT_LABEL`. Helpers like
+ * `formatHourlyVat()` render a price together with the right BTW
+ * label so no caller has to know which rate applies — they pass the
+ * item's `vat` field and get a string back.
+ *
+ * When changing a price, change it here only.
+ */
+
+// =============================================================
+// VAT
+// =============================================================
+
+export const VAT_RATES = {
+  reduced: 0.09, // inside the home
+  standard: 0.21, // outdoor / specialist
+} as const;
+
+export const VAT_LABEL = {
+  reduced: "incl. 9% BTW",
+  standard: "incl. 21% BTW",
+  mixed: "incl. BTW",
+} as const;
+
+// =============================================================
+// Recurring cleaning (inside-home, 9% BTW)
+// =============================================================
+
+export const RECURRING_RATES = {
+  weekly: {
+    hourly: 42,
+    label: "Weekly",
+    badge: "MOST CHOSEN" as const,
+    vat: VAT_RATES.reduced,
+  },
+  biweekly: {
+    hourly: 46,
+    label: "Bi-weekly",
+    badge: null,
+    vat: VAT_RATES.reduced,
+  },
+  monthly: {
+    hourly: 52,
+    label: "Monthly",
+    badge: null,
+    vat: VAT_RATES.reduced,
+  },
+} as const;
+
+// =============================================================
+// One-off cleaning (inside-home, 9% BTW)
+// =============================================================
+
+export const ONE_OFF_RATE = {
+  hourly: 58,
+  label: "One-off",
+  minimumHours: 2,
+  vat: VAT_RATES.reduced,
+} as const;
+
+// =============================================================
+// Fixed-price packages — Deep Clean (inside-home, 9% BTW)
+// =============================================================
+
+export const DEEP_CLEAN_PACKAGES = [
+  {
+    id: "studio",
+    label: "Studio",
+    sizeRange: "up to 50 m² / 1 bedroom",
+    estimatedHours: 3,
+    price: 225,
+    vat: VAT_RATES.reduced,
+  },
+  {
+    id: "apartment",
+    label: "Apartment",
+    sizeRange: "50–80 m² / 2 bedrooms",
+    estimatedHours: 4,
+    price: 295,
+    vat: VAT_RATES.reduced,
+  },
+  {
+    id: "family",
+    label: "Family home",
+    sizeRange: "80–120 m² / 3 bedrooms",
+    estimatedHours: 5,
+    price: 395,
+    vat: VAT_RATES.reduced,
+  },
+  {
+    id: "large",
+    label: "Large home",
+    sizeRange: "120 m²+ / 4+ bedrooms",
+    estimatedHours: 6,
+    price: null,
+    fromPrice: 495,
+    customQuote: true,
+    vat: VAT_RATES.reduced,
+  },
+] as const;
+
+// =============================================================
+// Fixed-price packages — Move-In / Move-Out (inside-home, 9% BTW)
+// =============================================================
+
+export const MOVE_PACKAGES = [
+  {
+    id: "studio",
+    label: "Studio",
+    sizeRange: "up to 50 m²",
+    price: 395,
+    vat: VAT_RATES.reduced,
+  },
+  {
+    id: "apartment",
+    label: "Apartment",
+    sizeRange: "50–80 m²",
+    price: 495,
+    vat: VAT_RATES.reduced,
+  },
+  {
+    id: "family",
+    label: "Family home",
+    sizeRange: "80–120 m²",
+    price: 625,
+    vat: VAT_RATES.reduced,
+  },
+  {
+    id: "large",
+    label: "Large home",
+    sizeRange: "120 m²+",
+    price: null,
+    fromPrice: 750,
+    customQuote: true,
+    vat: VAT_RATES.reduced,
+  },
+] as const;
+
+// =============================================================
+// Service catalog VAT + minimum-duration rules
+// =============================================================
+
+/** Default visit duration for showing "From €X per visit". */
+export const DEFAULT_VISIT_HOURS = 3;
+
+/** Minimum visit hours per service id. */
+export const SERVICE_MINIMUMS = {
+  regular: 2,
+  airbnb: 2,
+  office: 2,
+  deep: 3,
+  movein: 3,
+  moveout: 3,
+  builders: 4,
+} as const;
+
+/** VAT rate per service id. Office and after-builders are commercial /
+ *  specialist work and fall under the 21% standard rate. */
+export const SERVICE_VAT = {
+  regular: VAT_RATES.reduced,
+  airbnb: VAT_RATES.reduced,
+  office: VAT_RATES.standard,
+  deep: VAT_RATES.reduced,
+  movein: VAT_RATES.reduced,
+  moveout: VAT_RATES.reduced,
+  builders: VAT_RATES.standard,
+} as const;
+
+// =============================================================
+// Add-ons (each carries its own VAT rate)
+// =============================================================
+
+export const ADD_ONS = [
+  { id: "oven", label: "Inside oven", price: 30, vat: VAT_RATES.reduced },
+  { id: "fridge", label: "Inside fridge", price: 20, vat: VAT_RATES.reduced },
+  { id: "dishwasher", label: "Inside dishwasher", price: 20, vat: VAT_RATES.reduced },
+  { id: "microwave", label: "Inside microwave", price: 20, vat: VAT_RATES.reduced },
+  { id: "cabinets", label: "Inside cabinets", price: 10, vat: VAT_RATES.reduced },
+  { id: "windows_in", label: "Inside windows", price: 10, vat: VAT_RATES.reduced },
+  { id: "blinds", label: "Blinds", price: 20, vat: VAT_RATES.reduced },
+  { id: "balcony", label: "Balcony", price: 40, vat: VAT_RATES.standard, badge: "21% BTW" },
+  { id: "windows_out", label: "Exterior windows", price: 30, vat: VAT_RATES.standard, badge: "21% BTW" },
+  { id: "laundry", label: "In-house laundry", price: 30, vat: VAT_RATES.reduced },
+  { id: "ironing", label: "Ironing (per hour)", price: 25, vat: VAT_RATES.reduced },
+  { id: "walls", label: "Wall wipe-down", price: 30, vat: VAT_RATES.reduced },
+  { id: "stairs", label: "Stairs", price: 20, vat: VAT_RATES.reduced },
+  { id: "mould", label: "Bathroom mould treatment", price: 50, vat: VAT_RATES.reduced },
+  { id: "organisation", label: "Organisation", price: 30, vat: VAT_RATES.reduced },
+] as const;
+
+export const VACUUM_RENTAL = {
+  label: "Bring our vacuum",
+  price: 50,
+  vat: VAT_RATES.reduced,
+} as const;
+
+/**
+ * Cheapest concrete prices for "From €X" copy on the homepage. Studios
+ * are always the entry tier for both package families today; if that
+ * ever changes, swap the index or compute a min over `.price ?? .fromPrice`.
+ */
+export const DEEP_CLEAN_FROM_PRICE = DEEP_CLEAN_PACKAGES[0].price; // studio
+export const MOVE_FROM_PRICE = MOVE_PACKAGES[0].price; // studio
+export const ADD_ON_MIN_PRICE = Math.min(...ADD_ONS.map((a) => a.price));
+
+/**
+ * "Apartment" tier prices — the bundle picker on /book uses these as
+ * its anchor numbers ("€295 + add-ons" for First-time reset, "€495 +
+ * add-ons" for Move-out package). Cast through `as number` because the
+ * `as const` array union widens to `number | null` thanks to the
+ * "Large home" custom-quote tier.
+ */
+export const APARTMENT_DEEP_PRICE = DEEP_CLEAN_PACKAGES[1].price as number;
+export const APARTMENT_MOVE_PRICE = MOVE_PACKAGES[1].price as number;
+
+/**
+ * Hours used to compute "From €X per visit" on each booking-flow tile.
+ * Per the brief: Regular and Office advertise the 3-hour DEFAULT_VISIT
+ * estimate; Airbnb advertises its 2-hour minimum (small jobs); After-
+ * builders advertises its 4-hour minimum (specialist). Deep / Move-in
+ * / Move-out are fixed-price packages and don't use this map.
+ */
+export const SERVICE_TILE_HOURS = {
+  regular: DEFAULT_VISIT_HOURS,
+  airbnb: SERVICE_MINIMUMS.airbnb,
+  office: DEFAULT_VISIT_HOURS,
+  builders: SERVICE_MINIMUMS.builders,
+} as const;
+
+type HourlyTileService = keyof typeof SERVICE_TILE_HOURS;
+type ServiceVatId = keyof typeof SERVICE_VAT;
+
+const FIXED_PRICE_SERVICES = new Set<ServiceVatId>(["deep", "movein", "moveout"]);
+
+/**
+ * Render the "From €X · …" string shown on each /book service tile.
+ * Pulls VAT label from SERVICE_VAT and visit hours from
+ * SERVICE_TILE_HOURS so the spec's per-service quirks (Airbnb at min,
+ * Office at default) stay encoded in pricing.ts and never leak into
+ * the React layer.
+ */
+export function formatServiceTilePrice(serviceId: ServiceVatId): string {
+  const vat = SERVICE_VAT[serviceId];
+  const vatLabel =
+    vat === VAT_RATES.standard ? VAT_LABEL.standard : VAT_LABEL.reduced;
+
+  if (FIXED_PRICE_SERVICES.has(serviceId)) {
+    const fromPrice =
+      serviceId === "deep" ? DEEP_CLEAN_FROM_PRICE : MOVE_FROM_PRICE;
+    return `From ${formatEur(fromPrice)} · fixed price · ${vatLabel}`;
+  }
+
+  const id = serviceId as HourlyTileService;
+  const hours = SERVICE_TILE_HOURS[id];
+  const hourly =
+    id === "regular" ? RECURRING_RATES.weekly.hourly : ONE_OFF_RATE.hourly;
+  const total = hours * hourly;
+  // Spec wording: only Regular gets "estimate" qualifier.
+  const hourLabel = id === "regular" ? `${hours}h estimate` : `${hours}h`;
+  return `From ${formatEur(total)} per visit · ${hourLabel} · ${vatLabel}`;
+}
+
+/**
+ * Footnote shown beneath the right-rail booking total. Picks the right
+ * BTW disclosure based on which VAT rates are present in the booking
+ * (single-rate vs mixed). Pass the service VAT plus each selected
+ * add-on's VAT.
+ */
+export function vatFootnoteText(items: Array<{ vat: number }>): string {
+  const rates = new Set(items.map((i) => i.vat));
+  if (rates.size > 1) {
+    return "All prices include BTW. Interior items at 9%, exterior items at 21%.";
+  }
+  if (rates.has(VAT_RATES.standard)) {
+    return "All prices include 21% BTW.";
+  }
+  return "All prices include 9% BTW.";
+}
+
+/** O(1) lookup so consumers don't repeat ADD_ONS.find(...). */
+const ADDON_BY_ID: Record<string, (typeof ADD_ONS)[number]> = Object.fromEntries(
+  ADD_ONS.map((a) => [a.id, a]),
+);
+
+/**
+ * Look up an add-on by id. Throws when the id isn't in `ADD_ONS` —
+ * better to fail loudly at boot than silently render €0.
+ */
+export function findAddon(id: string): (typeof ADD_ONS)[number] {
+  const found = ADDON_BY_ID[id];
+  if (!found) throw new Error(`Unknown add-on id: ${id}`);
+  return found;
+}
+
+// =============================================================
+// Helpers — use these so formatting is consistent everywhere.
+// =============================================================
+
+export const formatEur = (n: number): string => `€${n}`;
+
+export const formatHourly = (n: number): string => `${formatEur(n)}/hr`;
+
+export const formatHourlyVat = (n: number, vat: number): string =>
+  `${formatHourly(n)} ${vat === VAT_RATES.standard ? VAT_LABEL.standard : VAT_LABEL.reduced}`;
+
+export const formatFixedPrice = (n: number, vat: number): string =>
+  `${formatEur(n)} ${vat === VAT_RATES.standard ? VAT_LABEL.standard : VAT_LABEL.reduced}`;
+
+export const formatFromPrice = (n: number): string => `From ${formatEur(n)}`;
+
+export function visitEstimate(
+  hourlyRate: number,
+  hours: number = DEFAULT_VISIT_HOURS,
+): number {
+  return hourlyRate * hours;
+}
+
+/**
+ * Picks the right BTW label for a booking with one or more priced
+ * items. Mixed bookings (e.g. interior cleaning + exterior windows
+ * add-on) get the generic "incl. BTW" label; the per-line breakdown
+ * carries the specific rate.
+ */
+export function vatLabelForBooking(items: Array<{ vat: number }>): string {
+  const rates = new Set(items.map((i) => i.vat));
+  if (rates.size > 1) return VAT_LABEL.mixed;
+  if (rates.has(VAT_RATES.standard)) return VAT_LABEL.standard;
+  return VAT_LABEL.reduced;
+}
+
+// =============================================================
+// Duration calculation — m² ladder + bed/bath floor.
+// =============================================================
+
+/**
  * Closes a margin leak that quoted a 50m² studio and a 500m² mansion
  * the same 2-hour minimum. Every price-displaying component must read
  * its hours from this function; do not duplicate the math.

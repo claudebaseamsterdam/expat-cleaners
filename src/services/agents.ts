@@ -17,6 +17,9 @@
  * All agents share environment_id = env_01UHsXjHhTNyvxgzRG7QEMm7.
  */
 
+import { formatLocalDate } from "@/lib/date";
+import { ONE_OFF_RATE, RECURRING_RATES } from "@/lib/pricing";
+
 export const AGENT_IDS = {
   adsGrowth: "agent_011CaLyk3aqxUDnXSf5GfzV6",
   adminFinance: "agent_011CaLzNKM8pw8QKEPot2Mua",
@@ -93,10 +96,13 @@ export type BookingResponse = {
 };
 
 // ---------- Pricing source of truth ----------
+// Phase 2: rates pulled from lib/pricing.ts. Recurring uses the weekly
+// rate (the cheapest cadence) for an optimistic mock estimate. Edit
+// the numbers in pricing.ts, never here.
 
-const RATE_ONE_OFF = 44;
-const RATE_RECURRING = 36;
-const MIN_HOURS = 2;
+const RATE_ONE_OFF = ONE_OFF_RATE.hourly;
+const RATE_RECURRING = RECURRING_RATES.weekly.hourly;
+const MIN_HOURS = ONE_OFF_RATE.minimumHours;
 const ADDON_FLAT_ESTIMATE = 20; // rough average — client-side has per-addon precision
 
 // ---------- Live booking paths (currently delegate to mocks) ----------
@@ -203,7 +209,9 @@ function mockOpsCheck(req: OpsCheckRequest): OpsCheckResponse {
       feasible: false,
       reason: `${postcodeShort} is at capacity for that day — we're tight in that area.`,
       alternative: {
-        date: altDate.toISOString().slice(0, 10),
+        // Local Y-M-D — toISOString().slice(0,10) round-trips the date
+        // back to the input day in CEST. See lib/date.ts for the why.
+        date: formatLocalDate(altDate),
         time: req.preferred_time || "10:00",
         note: "Next available in your area — same time, one day later.",
       },

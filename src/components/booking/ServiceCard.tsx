@@ -3,6 +3,7 @@
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Service } from "@/lib/booking";
+import { formatServiceTilePrice } from "@/lib/pricing";
 
 type Props = {
   service: Service;
@@ -11,6 +12,13 @@ type Props = {
 };
 
 export function ServiceCard({ service, selected, onSelect }: Props) {
+  // Phase 4.1: tile price line is per-service from pricing.ts. Inside-
+  // home services show "From €X per visit · Yh · incl. 9% BTW";
+  // fixed-price services (deep / move-in / move-out) show "From €X ·
+  // fixed price · incl. 9% BTW"; commercial / specialist services
+  // (office / after-builders) carry the 21% BTW label.
+  const tilePrice = formatServiceTilePrice(service.id);
+
   return (
     <button
       type="button"
@@ -47,7 +55,7 @@ export function ServiceCard({ service, selected, onSelect }: Props) {
       </div>
       <div className="text-sm text-brand-graphite">{service.desc}</div>
       <div className="mt-auto pt-3 text-xs font-medium text-brand-ink/70">
-        From €{service.baseRate}/hr · min {service.minHours}h
+        {tilePrice}
       </div>
     </button>
   );

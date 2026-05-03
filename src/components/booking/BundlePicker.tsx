@@ -2,7 +2,7 @@
 
 import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { BUNDLES, formatEuro, type Bundle } from "@/lib/booking";
+import { BUNDLES, type Bundle } from "@/lib/booking";
 
 type Props = {
   selectedId: Bundle["id"] | null;
@@ -85,14 +85,13 @@ function BundleCard({
           </li>
         ))}
       </ul>
-      <div className="mt-5 flex items-baseline gap-1.5">
-        <span className="font-display text-2xl tabular-nums text-brand-ink">
-          From {formatEuro(bundle.indicativePrice)}
-        </span>
-        <span className="text-xs text-brand-graphite">est.</span>
-      </div>
-      <p className="mt-1 text-xs text-brand-graphite">
-        Live total updates after you select.
+      {/* Phase 4.2 — bundle anchor price (e.g. "€295 + add-ons") for
+          fixed-package bundles, "Live total updates after you select"
+          for the recurring-hourly bundle. The full live total is
+          always shown in the right rail / mobile bar; this slot is
+          just the marketing anchor. */}
+      <p className="mt-5 text-sm font-medium text-brand-ink">
+        {bundle.priceLine}
       </p>
       <div className="mt-5 flex flex-col gap-2">
         <button

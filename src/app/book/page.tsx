@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { WizardProgress } from "@/components/booking/WizardProgress";
 import { WizardNav } from "@/components/booking/WizardNav";
@@ -19,6 +19,7 @@ import {
   clearDraft,
   defaultBookingState,
   loadDraft,
+  parseServiceQueryParam,
   saveConfirmed,
   saveDraft,
   type BookingState,
@@ -102,8 +103,22 @@ type WizardStep = 1 | 2 | 3;
 
 // ---------- Page ----------
 
+// Phase 7.3 — useSearchParams() requires a Suspense boundary in the
+// App Router. The whole page is a client component already, so we
+// just wrap the existing body in <Suspense> at the default-export
+// level and keep BookPageInner as the single render path.
 export default function BookPage() {
+  return (
+    <Suspense fallback={null}>
+      <BookPageInner />
+    </Suspense>
+  );
+}
+
+function BookPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const serviceParam = searchParams.get("service");
   const [state, dispatch] = useReducer(reducer, defaultBookingState);
   const [hydrated, setHydrated] = useState(false);
   const [step, setStep] = useState<WizardStep>(1);
@@ -130,6 +145,26 @@ export default function BookPage() {
     }
     setHydrated(true);
   }, []);
+
+  // Phase 7.3 — `/book?service=…` deep-link pre-selection. Runs after
+  // the localStorage hydrate so the URL takes priority over a stale
+  // draft. We strip the query param via router.replace so a later
+  // refresh doesn't undo whatever the user changed manually.
+  // The setShowBundles call is intentionally synchronous on a one-shot
+  // ref guard — same exception we use for the localStorage hydrate
+  // above and for the CookieBanner mount-sync.
+  const queryParamConsumedRef = useRef(false);
+  useEffect(() => {
+    if (queryParamConsumedRef.current) return;
+    const mapping = parseServiceQueryParam(serviceParam);
+    if (!mapping) return;
+    queryParamConsumedRef.current = true;
+    dispatch({ type: "service", id: mapping.serviceId });
+    dispatch({ type: "frequency", id: mapping.frequencyId });
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setShowBundles(false);
+    router.replace("/book", { scroll: false });
+  }, [serviceParam, router]);
 
   useEffect(() => {
     if (hydrated) saveDraft(state);
@@ -240,6 +275,10 @@ export default function BookPage() {
   const onContact = useCallback(
     (patch: Partial<BookingState["details"]>) =>
       dispatch({ type: "details", patch }),
+    [],
+  );
+  const onConsent = useCallback(
+    (value: boolean) => dispatch({ type: "consent", value }),
     [],
   );
 
@@ -490,6 +529,7 @@ export default function BookPage() {
                     opsCheck={opsCheck}
                     opsCheckLoading={opsCheckLoading}
                     onContact={onContact}
+                    onConsent={onConsent}
                     onUseAlternative={useAlternative}
                     onSubmit={handleSubmit}
                     submitting={submitting}

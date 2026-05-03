@@ -8,6 +8,7 @@ import {
   isDateFullyBooked,
   type BookingState,
 } from "@/lib/booking";
+import { formatLocalDate } from "@/lib/date";
 
 type Props = {
   state: BookingState;
@@ -43,7 +44,9 @@ function getMonthGrid(ref: Date): {
 
   for (let d = 1; d <= daysInMonth; d++) {
     const dt = new Date(year, monthIndex, d);
-    const iso = dt.toISOString().slice(0, 10);
+    // Local Y-M-D — never .toISOString().slice(0,10), which shifts CEST
+    // midnight back to the previous UTC day. See lib/date.ts.
+    const iso = formatLocalDate(dt);
     cells.push({
       kind: "day",
       date: iso,

@@ -45,6 +45,8 @@
  * (or Automatic Advanced Matching, depending on the surface).
  */
 
+import { hasMarketingConsent } from "./consent";
+
 declare global {
   // The fbq function is injected by the Pixel base script. Loose typing is
   // intentional — the third party's own typings are the source of truth.
@@ -112,6 +114,18 @@ function fire(event: string, params?: Record<string, unknown>): void {
       // Visibility into "what would have fired" while the Pixel ID is
       // unprovisioned. Silent in production.
       console.log(`[pixel] ${event}`, params ?? {});
+    }
+    return;
+  }
+  // Phase 6 — consent gate. The Privacy Statement promises "Meta Pixel
+  // only with consent." Every event funnels through this function, so
+  // a single check here protects PageView, ViewContent, AddToCart,
+  // InitiateCheckout, CompleteRegistration, and Purchase.
+  // Note: ensurePixel() is called AFTER the consent check, so the
+  // base script does not even download for non-consenting visitors.
+  if (!hasMarketingConsent()) {
+    if (IS_DEV) {
+      console.log(`[pixel] suppressed (no marketing consent): ${event}`);
     }
     return;
   }

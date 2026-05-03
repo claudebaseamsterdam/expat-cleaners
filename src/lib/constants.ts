@@ -9,6 +9,9 @@ export const BRAND = {
   tagline: "English-speaking cleaners in Amsterdam",
   kvk: "94002185",
   btw: "NL005057342B81",
+  // Phase 7 — canonical site URL used by app/sitemap.ts and
+  // app/robots.ts. No trailing slash; routes are appended as `${siteUrl}/path`.
+  siteUrl: "https://expat-cleaners.com",
 } as const;
 
 export const GOOGLE_REVIEWS_URL =
@@ -16,14 +19,9 @@ export const GOOGLE_REVIEWS_URL =
 
 export const WHATSAPP_URL = `https://wa.me/${BRAND.whatsappNumber}?text=${BRAND.whatsappMessage}`;
 
-export const PRICING = {
-  oneOff: 44,
-  biweekly: 40,
-  weekly: 36,
-  deepClean: 44,
-  minHours: 2,
-  deepMinHours: 3,
-} as const;
+// Removed in Phase 2: PRICING was a parallel rate config that nothing
+// imported. The single source of truth for every price now lives in
+// `lib/pricing.ts` (RECURRING_RATES, ONE_OFF_RATE, ADD_ONS, etc.).
 
 export const STATS = [
   { value: "200+", label: "Expats served" },

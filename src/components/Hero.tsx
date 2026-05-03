@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { formatHourly, RECURRING_RATES, VAT_LABEL } from "@/lib/pricing";
 
 // Calmer, warmer living-room interior — the previous hero shot was too
 // busy and undermined H1 legibility.
@@ -99,8 +100,8 @@ export function Hero() {
               transition={{ ...REVEAL.transition, delay: 0.16 }}
               className="mt-5 max-w-[520px] text-[17px] leading-[1.5] text-cream/90 md:text-[18px]"
             >
-              English-speaking cleaners. Organic products. Booked on
-              WhatsApp in 60 seconds. From €36/hr.
+              English-speaking cleaners. Organic products. From{" "}
+              {formatHourly(RECURRING_RATES.weekly.hourly)} ({VAT_LABEL.reduced}). Booked on WhatsApp in 60 seconds.
             </motion.p>
 
             <motion.div

@@ -7,11 +7,17 @@ import { cn } from "@/lib/utils";
 import {
   buildCustomQuoteMessage,
   formatEuro,
+  vatItemsForBooking,
   type BookingState,
   type PriceBreakdown,
 } from "@/lib/booking";
 import { whatsappLink } from "@/lib/whatsapp";
-import { formatDurationBreakdown, parseSqm } from "@/lib/pricing";
+import {
+  formatDurationBreakdown,
+  formatHourly,
+  parseSqm,
+  vatFootnoteText,
+} from "@/lib/pricing";
 
 type Props = {
   price: PriceBreakdown;
@@ -65,6 +71,16 @@ export function SummaryCard({
     homeType: state.home.type,
   });
   const customQuoteHref = whatsappLink(buildCustomQuoteMessage(sqm));
+  // Phase 4.4 — append the frequency's hourly rate to the breakdown
+  // line so the right rail surfaces "service name · hours · hourly
+  // rate · total" per the brief.
+  const breakdownWithRate = service
+    ? `${breakdown} · ${formatHourly(frequency.effectiveRate)}`
+    : breakdown;
+  // VAT footnote: single-rate or mixed depending on the service +
+  // add-on selection. Only rendered when a service is picked (no
+  // point telling the user about BTW before they've chosen anything).
+  const vatLine = service ? vatFootnoteText(vatItemsForBooking(state)) : null;
 
   return (
     <aside
@@ -119,7 +135,7 @@ export function SummaryCard({
             <div className="min-w-0">
               <div className="font-medium text-brand-ink">{service.label}</div>
               <div className="mt-0.5 text-xs text-brand-graphite">
-                {breakdown}
+                {breakdownWithRate}
               </div>
             </div>
             {hasDiscount ? (
@@ -204,6 +220,11 @@ export function SummaryCard({
           <p className="mt-2 text-xs leading-relaxed text-brand-graphite">
             Estimate confirmed before the clean. Secure online checkout via Mollie.
           </p>
+          {vatLine && (
+            <p className="mt-2 text-xs leading-relaxed text-brand-graphite">
+              {vatLine}
+            </p>
+          )}
         </>
       )}
 
