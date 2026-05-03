@@ -60,10 +60,13 @@ export function SummaryCard({
     addonLines,
     subtotal,
     isCustomQuote,
+    pricingMode,
+    selectedPackageLabel,
   } = price;
   const hasDiscount = laborSaved > 0.01;
+  const isFixedPrice = pricingMode === "fixed";
   const sqm = parseSqm(state.home.size);
-  const breakdown = formatDurationBreakdown({
+  const hourlyBreakdown = formatDurationBreakdown({
     hours,
     sqm,
     bedrooms: state.home.beds,
@@ -71,12 +74,16 @@ export function SummaryCard({
     homeType: state.home.type,
   });
   const customQuoteHref = whatsappLink(buildCustomQuoteMessage(sqm));
-  // Phase 4.4 — append the frequency's hourly rate to the breakdown
-  // line so the right rail surfaces "service name · hours · hourly
-  // rate · total" per the brief.
-  const breakdownWithRate = service
-    ? `${breakdown} · ${formatHourly(frequency.effectiveRate)}`
-    : breakdown;
+  // Phase 4.7 — fixed-price services display the package label
+  // ("Apartment · 50–80 m² · 4h"), no hourly-rate annotation. Hourly
+  // services keep the Phase 4.4 breakdown + rate annotation.
+  const breakdownLine = !service
+    ? hourlyBreakdown
+    : isFixedPrice
+      ? selectedPackageLabel ?? hourlyBreakdown
+      : `${hourlyBreakdown} · ${formatHourly(frequency.effectiveRate)}`;
+  // Phase 4.7 — relabel the bottom row when the price is fixed.
+  const totalLabel = isFixedPrice ? "Fixed price" : "Estimated total";
   // VAT footnote: single-rate or mixed depending on the service +
   // add-on selection. Only rendered when a service is picked (no
   // point telling the user about BTW before they've chosen anything).
@@ -135,7 +142,7 @@ export function SummaryCard({
             <div className="min-w-0">
               <div className="font-medium text-brand-ink">{service.label}</div>
               <div className="mt-0.5 text-xs text-brand-graphite">
-                {breakdownWithRate}
+                {breakdownLine}
               </div>
             </div>
             {hasDiscount ? (
@@ -190,7 +197,7 @@ export function SummaryCard({
 
           <hr className="border-brand-hairline" />
           <div className="flex items-baseline justify-between pt-1">
-            <span className="text-brand-graphite">Estimated total</span>
+            <span className="text-brand-graphite">{totalLabel}</span>
             <AnimatePresence mode="popLayout" initial={false}>
               <motion.span
                 key={subtotal}

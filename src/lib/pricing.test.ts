@@ -5,6 +5,9 @@ import {
   calculateDuration,
   formatDurationBreakdown,
   parseSqm,
+  selectDeepCleanPackage,
+  selectMovePackage,
+  selectPackageId,
 } from "./pricing.ts";
 
 // ----------------------------------------------------------------------------
@@ -272,4 +275,76 @@ test("parseSqm: parses simple integers", () => {
 test("parseSqm: zero / negatives → null", () => {
   assert.equal(parseSqm("0"), null);
   assert.equal(parseSqm("-5"), null);
+});
+
+// ----------------------------------------------------------------------------
+// Phase 4.7 — package tier selection
+// ----------------------------------------------------------------------------
+
+test("selectPackageId: sqm boundaries (sqm wins when present)", () => {
+  // Pick a bedroom count that would WANT a different tier so we can
+  // see sqm taking precedence.
+  assert.equal(selectPackageId(30, 4), "studio");
+  assert.equal(selectPackageId(49, 4), "studio");
+  assert.equal(selectPackageId(50, 4), "apartment");
+  assert.equal(selectPackageId(79, 4), "apartment");
+  assert.equal(selectPackageId(80, 1), "family");
+  assert.equal(selectPackageId(119, 1), "family");
+  assert.equal(selectPackageId(120, 1), "large");
+  assert.equal(selectPackageId(250, 1), "large");
+});
+
+test("selectPackageId: bedroom fallback when sqm missing", () => {
+  assert.equal(selectPackageId(null, 0), "studio");
+  assert.equal(selectPackageId(null, 1), "studio");
+  assert.equal(selectPackageId(null, 2), "apartment");
+  assert.equal(selectPackageId(null, 3), "family");
+  assert.equal(selectPackageId(null, 4), "large");
+  assert.equal(selectPackageId(null, 8), "large");
+});
+
+test("selectPackageId: invalid sqm (zero / undefined) falls back to bedrooms", () => {
+  assert.equal(selectPackageId(0, 3), "family");
+  assert.equal(selectPackageId(undefined, 2), "apartment");
+});
+
+test("selectDeepCleanPackage: returns the live package object with price", () => {
+  const studio = selectDeepCleanPackage(30, 1);
+  assert.equal(studio.id, "studio");
+  assert.equal(studio.price, 225);
+  const apartment = selectDeepCleanPackage(65, 2);
+  assert.equal(apartment.id, "apartment");
+  assert.equal(apartment.price, 295);
+  const family = selectDeepCleanPackage(100, 3);
+  assert.equal(family.id, "family");
+  assert.equal(family.price, 395);
+});
+
+test("selectDeepCleanPackage: large tier returns customQuote payload", () => {
+  const large = selectDeepCleanPackage(180, 1);
+  assert.equal(large.id, "large");
+  assert.equal(large.price, null);
+  assert.equal(large.customQuote, true);
+  // fromPrice carries the WhatsApp anchor for the custom-quote CTA.
+  assert.equal(large.fromPrice, 495);
+});
+
+test("selectMovePackage: returns the live package object with price", () => {
+  const studio = selectMovePackage(40, 1);
+  assert.equal(studio.id, "studio");
+  assert.equal(studio.price, 395);
+  const apartment = selectMovePackage(70, 2);
+  assert.equal(apartment.id, "apartment");
+  assert.equal(apartment.price, 495);
+  const family = selectMovePackage(100, 3);
+  assert.equal(family.id, "family");
+  assert.equal(family.price, 625);
+});
+
+test("selectMovePackage: large tier returns customQuote payload", () => {
+  const large = selectMovePackage(140, 4);
+  assert.equal(large.id, "large");
+  assert.equal(large.price, null);
+  assert.equal(large.customQuote, true);
+  assert.equal(large.fromPrice, 750);
 });

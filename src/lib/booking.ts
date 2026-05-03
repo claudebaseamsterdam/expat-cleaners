@@ -35,6 +35,8 @@ import {
   SERVICE_MINIMUMS,
   SERVICE_VAT,
   VACUUM_RENTAL,
+  selectDeepCleanPackage,
+  selectMovePackage,
   vatLabelForBooking,
   type DurationResult,
 } from "@/lib/pricing";
@@ -371,6 +373,37 @@ export function bookingDuration(state: BookingState): DurationResult {
 
 export type AddonLine = { extra: Extra; qty: number; line: number };
 
+/**
+ * Phase 4.7 — discriminator for the three pricing modes the booking
+ * surface can be in:
+ *  - "hourly"        → frequency.effectiveRate × estimated hours
+ *                       (regular, airbnb, office, after-builders)
+ *  - "fixed"         → DEEP_CLEAN_PACKAGES / MOVE_PACKAGES tier price
+ *                       (deep, move-in, move-out under the large tier)
+ *  - "custom-quote"  → home is too big to price in-flow; user is sent
+ *                       to WhatsApp with a pre-filled message. Triggered
+ *                       by either the hourly threshold (≥156 m²) or
+ *                       a fixed-price service landing on the "large"
+ *                       tier (120 m²+ / 4+ bed).
+ */
+export type PricingMode = "hourly" | "fixed" | "custom-quote";
+
+const FIXED_PRICE_SERVICES: ReadonlySet<ServiceId> = new Set([
+  "deep",
+  "movein",
+  "moveout",
+]);
+
+/** True when the service is priced as a fixed package, not hourly.
+ *  Single source of truth shared by calcTotal (engine) and the UI
+ *  layer (frequency-picker hide / WhatsApp template branch). */
+export function isFixedPriceService(
+  serviceId: ServiceId | null | undefined,
+): boolean {
+  if (!serviceId) return false;
+  return FIXED_PRICE_SERVICES.has(serviceId);
+}
+
 export type PriceBreakdown = {
   service: Service | undefined;
   frequency: Frequency;
@@ -384,33 +417,88 @@ export type PriceBreakdown = {
   subtotal: number;
   discount: number;
   /**
-   * True when the home is ≥ CUSTOM_QUOTE_THRESHOLD_SQM and we route the
-   * user to a WhatsApp custom quote. Numeric fields (hours/labor/etc)
-   * are still set to 0 in this case so consumers don't accidentally
-   * render garbage; UI surfaces should branch on this flag and show the
-   * custom-quote panel instead of the price block.
+   * True when the home is ≥ CUSTOM_QUOTE_THRESHOLD_SQM (hourly path) or
+   * lands on the "large" tier of a fixed-price package. UI surfaces
+   * should branch on this flag and show the custom-quote panel instead
+   * of the price block.
    */
   isCustomQuote: boolean;
+  /** See PricingMode docs above. */
+  pricingMode: PricingMode;
+  /** "Apartment · 50–80 m² · 4h" — only set in fixed mode (and the
+   *  fixed-large custom-quote case so the WhatsApp panel can name the
+   *  tier the customer ended up on). Null in hourly mode. */
+  selectedPackageLabel: string | null;
+  /** "studio" | "apartment" | "family" | "large" — only set in fixed
+   *  / fixed-custom-quote modes; null in hourly. */
+  selectedPackageId: string | null;
 };
 
 export function calcTotal(state: BookingState): PriceBreakdown {
   const service = getService(state.serviceId);
   const frequency = getFrequency(state.frequencyId);
+  const sqm = parseSqm(state.home.size);
+  const beds = state.home.beds;
 
-  const duration = service
-    ? bookingDuration(state)
-    : ({ kind: "estimate", hours: 0 } as DurationResult);
+  // Defaults — overwritten by whichever branch we land in below.
+  let pricingMode: PricingMode = "hourly";
+  let isCustomQuote = false;
+  let labor = 0;
+  let hours = 0;
+  let selectedPackageLabel: string | null = null;
+  let selectedPackageId: string | null = null;
 
-  const isCustomQuote = duration.kind === "custom-quote";
-  const hours = duration.kind === "estimate" ? duration.hours : 0;
+  if (!service) {
+    // No service yet — empty estimate. Mode stays "hourly" so the
+    // SummaryCard renders its initial "Select a service…" copy.
+    pricingMode = "hourly";
+  } else if (FIXED_PRICE_SERVICES.has(service.id)) {
+    // Phase 4.7 — fixed-price flow. Tier picked from the home's
+    // (sqm, beds) via selectPackageId in pricing.ts. The bedroom +
+    // bathroom + size controls now move the customer between tiers
+    // (each tier is a single fixed price); they no longer drift the
+    // hourly subtotal.
+    const pkg =
+      service.id === "deep"
+        ? selectDeepCleanPackage(sqm, beds)
+        : selectMovePackage(sqm, beds);
+    selectedPackageId = pkg.id;
 
-  // Phase 1.3: labour is computed directly from the frequency's hourly
-  // rate (€58 / €46 / €42). No more "subtract a discount from a €44
-  // base" math — the frequency rate IS the rate. baseRate stays in the
-  // breakdown for downstream consumers (Phase 4 will replace it with
-  // service-specific package pricing for deep / move-out).
+    if ("customQuote" in pkg && pkg.customQuote) {
+      // Large tier (120 m²+ / 4+ bed) → routed to WhatsApp custom
+      // quote. The tier label still gets surfaced so the WhatsApp
+      // pre-filled message can name it.
+      pricingMode = "custom-quote";
+      isCustomQuote = true;
+      selectedPackageLabel = `${pkg.label} · ${pkg.sizeRange}`;
+    } else {
+      pricingMode = "fixed";
+      labor = pkg.price as number;
+      // DEEP_CLEAN_PACKAGES carry estimatedHours; MOVE_PACKAGES don't.
+      const estHours =
+        "estimatedHours" in pkg && typeof pkg.estimatedHours === "number"
+          ? pkg.estimatedHours
+          : 0;
+      hours = estHours;
+      selectedPackageLabel =
+        estHours > 0
+          ? `${pkg.label} · ${pkg.sizeRange} · ${estHours}h`
+          : `${pkg.label} · ${pkg.sizeRange}`;
+    }
+  } else {
+    // Hourly flow — regular, airbnb, office, after-builders. Existing
+    // calculator: bookingDuration → hours, frequency rate → labor.
+    pricingMode = "hourly";
+    const duration = bookingDuration(state);
+    isCustomQuote = duration.kind === "custom-quote";
+    hours = duration.kind === "estimate" ? duration.hours : 0;
+    labor = isCustomQuote ? 0 : frequency.effectiveRate * hours;
+  }
+
+  // Phase 1.3 leftovers: discount math is no-op'd. Keep the fields so
+  // older consumers (SummaryCard's hasDiscount guard) keep their
+  // self-hiding behaviour.
   const baseRate = service?.baseRate ?? BASE_RATE;
-  const labor = isCustomQuote ? 0 : frequency.effectiveRate * hours;
   const laborDiscounted = labor;
   const laborSaved = 0;
 
@@ -423,9 +511,8 @@ export function calcTotal(state: BookingState): PriceBreakdown {
     .filter((l): l is AddonLine => l !== null);
 
   const extrasTotal = addonLines.reduce((acc, l) => acc + l.line, 0);
-  // For a custom quote the extras line items still display in the
-  // breakdown, but we don't roll them into a subtotal — the quote is
-  // negotiated on WhatsApp.
+  // Custom-quote skips the subtotal (price is negotiated on WhatsApp).
+  // Fixed and hourly both sum labour + add-ons.
   const subtotal = isCustomQuote ? 0 : laborDiscounted + extrasTotal;
 
   return {
@@ -441,6 +528,9 @@ export function calcTotal(state: BookingState): PriceBreakdown {
     subtotal,
     discount: frequency.discount,
     isCustomQuote,
+    pricingMode,
+    selectedPackageLabel,
+    selectedPackageId,
   };
 }
 
@@ -510,8 +600,16 @@ export function buildCustomQuoteMessage(sqm: number | null): string {
  */
 export function buildBookingMessage(state: BookingState): string {
   const price = calcTotal(state);
-  const { service, frequency, hours, addonLines, subtotal, isCustomQuote } =
-    price;
+  const {
+    service,
+    frequency,
+    hours,
+    addonLines,
+    subtotal,
+    isCustomQuote,
+    pricingMode,
+    selectedPackageLabel,
+  } = price;
 
   if (isCustomQuote) {
     return buildCustomQuoteMessage(parseSqm(state.home.size));
@@ -521,12 +619,22 @@ export function buildBookingMessage(state: BookingState): string {
     return "Hey ExpatCleaners — I'd like to book a clean.";
   }
 
+  const isFixed = pricingMode === "fixed";
+
   const lines: string[] = [];
   lines.push("Hey ExpatCleaners — I'd like to book:");
   lines.push("");
-  lines.push(
-    `* ${service.label} · ${formatHours(hours)} · ${frequency.label}`,
-  );
+  // Phase 4.7 — fixed-price services emit the package label and skip
+  // the frequency clause (frequency doesn't apply to a one-time
+  // fixed-price package). Hourly services keep the Phase 4.6 shape.
+  if (isFixed) {
+    const label = selectedPackageLabel ?? service.label;
+    lines.push(`* ${service.label} · ${label}`);
+  } else {
+    lines.push(
+      `* ${service.label} · ${formatHours(hours)} · ${frequency.label}`,
+    );
+  }
   if (state.preferredDate || state.preferredTime) {
     const datePart = state.preferredDate || "—";
     const timePart = state.preferredTime ? ` ${state.preferredTime}` : "";
@@ -548,8 +656,13 @@ export function buildBookingMessage(state: BookingState): string {
     lines.push("* On waiting list for earliest opening");
   }
   lines.push("");
+  // Phase 4.7 — fixed-price packages get a hard "Total:" not "Total
+  // estimate:" so the customer reads it as a commitment, not a guess.
+  // Hourly stays as "Total estimate" because the actual charge depends
+  // on time worked.
   const vatLabel = vatLabelForBooking(vatItemsForBooking(state));
-  lines.push(`Total estimate: ${formatEuro(subtotal)} (${vatLabel})`);
+  const totalPrefix = isFixed ? "Total" : "Total estimate";
+  lines.push(`${totalPrefix}: ${formatEuro(subtotal)} (${vatLabel})`);
 
   // "Reach me on:" — only emit when at least one contact field is set.
   // Phone and email are space-separated per spec.

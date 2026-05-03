@@ -48,11 +48,14 @@ export function MobileSummaryBar({ price, state }: Props) {
     addonLines,
     subtotal,
     isCustomQuote,
+    pricingMode,
+    selectedPackageLabel,
   } = price;
   const hasService = !!service;
   const hasDiscount = laborSaved > 0.01;
+  const isFixedPrice = pricingMode === "fixed";
   const sqm = parseSqm(state.home.size);
-  const breakdown = formatDurationBreakdown({
+  const hourlyBreakdown = formatDurationBreakdown({
     hours,
     sqm,
     bedrooms: state.home.beds,
@@ -60,14 +63,17 @@ export function MobileSummaryBar({ price, state }: Props) {
     homeType: state.home.type,
   });
   const customQuoteHref = whatsappLink(buildCustomQuoteMessage(sqm));
-  // Phase 4.4 — same VAT footnote + hourly-rate annotation as the
-  // desktop SummaryCard. Mobile sheet mirrors the desktop right rail.
+  // Phase 4.4 + 4.7 — VAT footnote, plus a breakdown line that swaps
+  // between the package label (fixed) and the hourly rate (hourly).
   const vatLine = hasService
     ? vatFootnoteText(vatItemsForBooking(state))
     : null;
-  const breakdownWithRate = hasService
-    ? `${breakdown} · ${frequency.label} · ${formatHourly(frequency.effectiveRate)}`
-    : breakdown;
+  const breakdownLine = !hasService
+    ? hourlyBreakdown
+    : isFixedPrice
+      ? selectedPackageLabel ?? hourlyBreakdown
+      : `${hourlyBreakdown} · ${frequency.label} · ${formatHourly(frequency.effectiveRate)}`;
+  const totalLabel = isFixedPrice ? "Fixed price" : "Estimated total";
   // Custom-quote (>155m²) WhatsApp clicks have no estimable price, so
   // value is 0 — the conversion still counts in CompleteRegistration.
   const onCustomQuoteClick = () =>
@@ -167,7 +173,7 @@ export function MobileSummaryBar({ price, state }: Props) {
                         {service.label}
                       </div>
                       <div className="mt-0.5 text-xs text-brand-graphite">
-                        {breakdownWithRate}
+                        {breakdownLine}
                       </div>
                     </div>
                     {hasDiscount ? (
@@ -223,7 +229,7 @@ export function MobileSummaryBar({ price, state }: Props) {
                   )}
                   <hr className="border-brand-hairline" />
                   <div className="flex items-baseline justify-between pt-1">
-                    <span className="text-brand-graphite">Estimated total</span>
+                    <span className="text-brand-graphite">{totalLabel}</span>
                     <span className="font-display text-2xl tabular-nums text-brand-ink">
                       {formatEuro(subtotal)}
                     </span>
@@ -305,7 +311,9 @@ export function MobileSummaryBar({ price, state }: Props) {
                   {service.label}
                 </div>
                 <div className="mt-0.5 truncate text-xs text-brand-graphite">
-                  {breakdown} · {frequency.label}
+                  {isFixedPrice
+                    ? selectedPackageLabel ?? hourlyBreakdown
+                    : `${hourlyBreakdown} · ${frequency.label}`}
                 </div>
               </div>
             ) : (

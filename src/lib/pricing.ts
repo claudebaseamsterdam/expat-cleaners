@@ -227,6 +227,66 @@ export const ADD_ON_MIN_PRICE = Math.min(...ADD_ONS.map((a) => a.price));
 export const APARTMENT_DEEP_PRICE = DEEP_CLEAN_PACKAGES[1].price as number;
 export const APARTMENT_MOVE_PRICE = MOVE_PACKAGES[1].price as number;
 
+// =============================================================
+// Package tier selection (for fixed-price services)
+// =============================================================
+
+/**
+ * Phase 4.7 — every fixed-price service (deep, move-in, move-out)
+ * picks ONE of these four tiers from the home's size + bedrooms. m²
+ * wins when present; the bedroom ladder is a fallback for users who
+ * skipped the size field. Boundaries match the `sizeRange` strings on
+ * each package so the spoken-words and the math agree.
+ *
+ *   ≤ 49 m² (or 0–1 bed)    → studio
+ *   50–79 m² (or 2 bed)     → apartment
+ *   80–119 m² (or 3 bed)    → family
+ *   120+ m² (or 4+ bed)     → large (custom quote)
+ */
+export type PackageTierId = "studio" | "apartment" | "family" | "large";
+
+export function selectPackageId(
+  sqm: number | null | undefined,
+  bedrooms: number,
+): PackageTierId {
+  if (typeof sqm === "number" && sqm > 0) {
+    if (sqm >= 120) return "large";
+    if (sqm >= 80) return "family";
+    if (sqm >= 50) return "apartment";
+    return "studio";
+  }
+  if (bedrooms >= 4) return "large";
+  if (bedrooms === 3) return "family";
+  if (bedrooms >= 2) return "apartment";
+  return "studio";
+}
+
+/**
+ * Pick the right tier from `DEEP_CLEAN_PACKAGES` for a given home.
+ * Throws if a tier is missing — fail loud at boot rather than render
+ * a silent €0 in the summary card.
+ */
+export function selectDeepCleanPackage(
+  sqm: number | null | undefined,
+  bedrooms: number,
+): (typeof DEEP_CLEAN_PACKAGES)[number] {
+  const id = selectPackageId(sqm, bedrooms);
+  const pkg = DEEP_CLEAN_PACKAGES.find((p) => p.id === id);
+  if (!pkg) throw new Error(`Missing deep-clean package tier: ${id}`);
+  return pkg;
+}
+
+/** Pick the right tier from `MOVE_PACKAGES` for a given home. */
+export function selectMovePackage(
+  sqm: number | null | undefined,
+  bedrooms: number,
+): (typeof MOVE_PACKAGES)[number] {
+  const id = selectPackageId(sqm, bedrooms);
+  const pkg = MOVE_PACKAGES.find((p) => p.id === id);
+  if (!pkg) throw new Error(`Missing move package tier: ${id}`);
+  return pkg;
+}
+
 /**
  * Hours used to compute "From €X per visit" on each booking-flow tile.
  * Per the brief: Regular and Office advertise the 3-hour DEFAULT_VISIT

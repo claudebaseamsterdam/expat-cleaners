@@ -5,10 +5,11 @@ import { StepSpecifics } from "@/components/booking/StepSpecifics";
 import { StepExtras } from "@/components/booking/StepExtras";
 import { StepFrequency } from "@/components/booking/StepFrequency";
 import { cn } from "@/lib/utils";
-import type {
-  BookingState,
-  FrequencyId,
-  ServiceId,
+import {
+  isFixedPriceService,
+  type BookingState,
+  type FrequencyId,
+  type ServiceId,
 } from "@/lib/booking";
 
 type Props = {
@@ -32,6 +33,11 @@ export function Step1HomeService({
 }: Props) {
   const postcodeValid =
     !state.details.postalCode || POSTCODE_RE.test(state.details.postalCode);
+  // Phase 4.7 — fixed-price services (deep / move-in / move-out) are
+  // one-time packages by definition. Hiding the frequency picker
+  // removes the misleading "weekly / bi-weekly" choice and replaces it
+  // with a one-line explainer so the row keeps its visual rhythm.
+  const isFixed = isFixedPriceService(state.serviceId);
 
   return (
     <div className="space-y-10">
@@ -53,9 +59,18 @@ export function Step1HomeService({
         <StepExtras state={state} onExtra={onExtra} />
       </Subsection>
 
-      <Subsection title="How often?">
-        <StepFrequency state={state} onSelect={onFrequency} />
-      </Subsection>
+      {isFixed ? (
+        <Subsection title="How often?">
+          <p className="text-sm text-brand-graphite">
+            Deep cleans, move-in and move-out are one-time fixed-price
+            packages — no frequency choice.
+          </p>
+        </Subsection>
+      ) : (
+        <Subsection title="How often?">
+          <StepFrequency state={state} onSelect={onFrequency} />
+        </Subsection>
+      )}
     </div>
   );
 }
