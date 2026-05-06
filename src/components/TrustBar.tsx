@@ -1,8 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ShieldCheck, BadgeCheck, Leaf, Star } from "lucide-react";
-import { BRAND, GOOGLE_REVIEWS_URL } from "@/lib/constants";
+import { ShieldCheck, BadgeCheck, Leaf, MessageCircle } from "lucide-react";
+import { BRAND } from "@/lib/constants";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -29,11 +29,13 @@ const ITEMS: Item[] = [
     label: "Bio-certified",
     sub: "Plant-derived products",
   },
+  // Replaced the "4.9 on Google · 200+ Amsterdam reviews" tile while
+  // we don't have the volume to back the claim. WhatsApp responsiveness
+  // is the operational promise we can actually keep today.
   {
-    icon: Star,
-    label: "4.9 on Google",
-    sub: "200+ Amsterdam reviews",
-    href: GOOGLE_REVIEWS_URL,
+    icon: MessageCircle,
+    label: "WhatsApp support",
+    sub: "Reply within the hour",
   },
 ];
 

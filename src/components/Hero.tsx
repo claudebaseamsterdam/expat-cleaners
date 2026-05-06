@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Star } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { formatHourly, RECURRING_RATES, VAT_LABEL } from "@/lib/pricing";
 
@@ -120,21 +120,24 @@ export function Hero() {
               </Link>
             </motion.div>
 
+            {/* Trust microcopy under the CTAs. Previously read "4.9 on
+                Google · 200+ Amsterdam expats · Same cleaner, every
+                time" with a gold star — those metrics weren't real and
+                exposed us under Wet Oneerlijke Handelspraktijken. The
+                line now leans on the operational promise we can
+                actually keep today, mirroring the WhatsApp tile in
+                TrustBar. */}
             <motion.p
               {...REVEAL}
               transition={{ ...REVEAL.transition, delay: 0.32 }}
               className="mt-7 flex items-center gap-2 text-[13px] text-cream/80"
             >
-              <Star
+              <MessageCircle
                 aria-hidden
-                className="h-3.5 w-3.5 shrink-0 text-[#E5C97A]"
-                fill="currentColor"
-                strokeWidth={0}
+                className="h-3.5 w-3.5 shrink-0 text-cream/80"
+                strokeWidth={1.75}
               />
-              <span>
-                4.9 on Google · 200+ Amsterdam expats · Same cleaner,
-                every time
-              </span>
+              <span>WhatsApp support · Reply within the hour</span>
             </motion.p>
           </div>
         </div>

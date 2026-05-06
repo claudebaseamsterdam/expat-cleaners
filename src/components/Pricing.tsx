@@ -25,12 +25,21 @@ type Plan = {
   body: string;
   prefill: string;
   cta: string;
-  featured?: boolean;
+  /**
+   * Per-plan badge text rendered above the plan name. Only one plan
+   * can carry "Best value" at a time (Weekly today). Bi-weekly carries
+   * "Most popular" as the secondary anchor. One-off has no badge — its
+   * slot renders an invisible spacer so the three card titles stay
+   * aligned across the row.
+   */
+  badge?: string;
 };
 
 // Three hourly plans. Order is fixed (one-off → bi-weekly → weekly) to
-// match the brief's left-to-right "commitment ladder"; the weekly card
-// carries the MOST CHOSEN caption via `featured`.
+// match the brief's left-to-right "commitment ladder". Each plan
+// carries its own badge (or none) — previously every card rendered
+// "Most chosen" with two of them invisible, which is logically
+// inconsistent and looks broken if the CSS placeholder ever leaks.
 const PLANS: Plan[] = [
   {
     id: "oneoff",
@@ -49,6 +58,7 @@ const PLANS: Plan[] = [
     body: "Every two weeks. Same cleaner.",
     prefill: "Hi! I'd like to set up a bi-weekly clean.",
     cta: "Start bi-weekly",
+    badge: "Most popular",
   },
   {
     id: "weekly",
@@ -58,7 +68,7 @@ const PLANS: Plan[] = [
     body: "Best value. Same cleaner. Organic supplies included.",
     prefill: "Hi! I'd like to set up a weekly clean.",
     cta: "Start weekly",
-    featured: true,
+    badge: "Best value",
   },
 ];
 
@@ -160,15 +170,17 @@ export function Pricing() {
               className="flex flex-col"
             >
               {/* Reserve the same vertical slot on every card so the
-                  title row aligns across all three. The non-featured
-                  cards render an invisible placeholder of identical
-                  height; only the Weekly card has visible "Most
-                  chosen" text. */}
+                  title row aligns across all three. Cards without a
+                  badge render an invisible placeholder of identical
+                  height; cards with a badge render their own label
+                  (e.g. "Most popular", "Best value"). Using "—" as
+                  the placeholder text keeps the line-height calc
+                  stable even if a future font swap changes metrics. */}
               <p
-                className={cn("caption mb-4", !plan.featured && "invisible")}
-                aria-hidden={!plan.featured}
+                className={cn("caption mb-4", !plan.badge && "invisible")}
+                aria-hidden={!plan.badge}
               >
-                Most chosen
+                {plan.badge ?? "—"}
               </p>
               <h3
                 className="font-display text-[22px] leading-[1.2] tracking-[-0.01em] text-ink"
