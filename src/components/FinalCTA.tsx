@@ -29,7 +29,7 @@ export function FinalCTA() {
           Two minutes on WhatsApp. Your Sundays back.
         </h2>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-5">
-          <WhatsAppButton variant="primary">
+          <WhatsAppButton variant="primary" trackName="whatsapp_final_cta">
             Message us on WhatsApp
           </WhatsAppButton>
           <Link

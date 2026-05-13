@@ -150,7 +150,11 @@ export function Services() {
                     {card.body}
                   </p>
                   <div className="mt-8">
-                    <WhatsAppButton variant="small" message={card.prefill}>
+                    <WhatsAppButton
+                      variant="small"
+                      message={card.prefill}
+                      trackName={`whatsapp_services_${card.id}`}
+                    >
                       {card.cta}
                     </WhatsAppButton>
                   </div>

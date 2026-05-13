@@ -204,7 +204,11 @@ export function Pricing() {
                 {plan.body}
               </p>
               <div className="mt-7">
-                <WhatsAppButton variant="small" message={plan.prefill}>
+                <WhatsAppButton
+                  variant="small"
+                  message={plan.prefill}
+                  trackName={`whatsapp_pricing_${plan.id}`}
+                >
                   {plan.cta}
                 </WhatsAppButton>
               </div>

@@ -69,35 +69,36 @@ export function CookieBanner() {
           role="dialog"
           aria-label="Cookie preferences"
           aria-modal="false"
-          className="fixed inset-x-0 bottom-0 z-50 border-t border-stone/25 bg-cream shadow-[0_-12px_40px_-16px_rgba(26,26,26,0.18)]"
+          className="fixed inset-x-0 bottom-0 z-50 border-t border-stone/25 bg-cream/95 shadow-[0_-12px_40px_-16px_rgba(26,26,26,0.18)] backdrop-blur-md"
           style={{
-            paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)",
+            paddingBottom: "calc(env(safe-area-inset-bottom) + 10px)",
           }}
         >
-          <div className="mx-auto flex max-w-[1280px] flex-col gap-4 px-6 py-6 md:flex-row md:items-center md:gap-8 md:px-8">
-            <p className="flex-1 text-[14px] leading-[1.55] text-ink">
-              We use functional cookies to make the site work, and — only
-              if you accept — Meta Pixel to measure our ads. See our{" "}
+          <div className="mx-auto flex max-w-[1280px] flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:gap-8 md:px-8 md:py-6">
+            <p className="flex-1 text-[12.5px] leading-[1.45] text-ink md:text-[14px] md:leading-[1.55]">
+              Functional cookies keep the site working. With your
+              permission, Meta also learns which ads bring expats here —
+              so we can keep the good ones running.{" "}
               <Link
                 href="/privacy"
                 className="link-underline text-ink"
               >
-                Privacy Statement
+                Privacy
               </Link>
               .
             </p>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+            <div className="flex flex-row items-center gap-2 md:gap-3">
               <button
                 type="button"
                 onClick={() => decide("necessary")}
-                className="h-11 rounded-full border border-stone/30 bg-cream px-5 text-[14px] font-medium text-ink transition-colors hover:border-ink/40"
+                className="h-10 flex-1 rounded-full border border-stone/30 bg-cream px-4 text-[13px] font-medium text-ink transition-colors hover:border-ink/40 md:h-11 md:flex-none md:px-5 md:text-[14px]"
               >
                 Necessary only
               </button>
               <button
                 type="button"
                 onClick={() => decide("all")}
-                className="h-11 rounded-full bg-ink px-6 text-[14px] font-medium text-cream transition-colors hover:bg-ink/90"
+                className="h-10 flex-1 rounded-full bg-ink px-5 text-[13px] font-medium text-cream transition-colors hover:bg-ink/90 md:h-11 md:flex-none md:px-6 md:text-[14px]"
               >
                 Accept all
               </button>

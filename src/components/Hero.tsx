@@ -109,7 +109,7 @@ export function Hero() {
               transition={{ ...REVEAL.transition, delay: 0.24 }}
               className="mt-8 flex flex-wrap items-center gap-5"
             >
-              <WhatsAppButton variant="primary">
+              <WhatsAppButton variant="primary" trackName="whatsapp_hero">
                 Message us on WhatsApp
               </WhatsAppButton>
               <Link
