@@ -85,7 +85,7 @@ function BundleCard({
           </li>
         ))}
       </ul>
-      {/* Phase 4.2 — bundle anchor price (e.g. "€295 + add-ons") for
+      {/* Phase 4.2 — bundle anchor price (e.g. "€225 + add-ons") for
           fixed-package bundles, "Live total updates after you select"
           for the recurring-hourly bundle. The full live total is
           always shown in the right rail / mobile bar; this slot is

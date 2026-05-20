@@ -828,7 +828,7 @@ export type Bundle = {
   bullets: [string, string, string];
   /**
    * Price line shown under the bundle's bullets. Two patterns:
-   *  - Anchor + add-ons   → e.g. "€295 + add-ons" (First-time reset,
+   *  - Anchor + add-ons   → e.g. "€225 + add-ons" (First-time reset,
    *    Move-out package). The anchor is the apartment-tier fixed
    *    package price; add-ons accumulate on top in the live total.
    *  - Live-total-only    → "Live total updates after you select"

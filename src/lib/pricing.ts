@@ -42,23 +42,23 @@ export const VAT_LABEL = {
 
 export const RECURRING_RATES = {
   weekly: {
-    hourly: 42,
+    hourly: 38,
     label: "Weekly",
     badge: "MOST CHOSEN" as const,
     vat: VAT_RATES.reduced,
   },
   biweekly: {
-    hourly: 46,
+    hourly: 40,
     label: "Bi-weekly",
     badge: null,
     vat: VAT_RATES.reduced,
   },
-  monthly: {
-    hourly: 52,
-    label: "Monthly",
-    badge: null,
-    vat: VAT_RATES.reduced,
-  },
+  // Monthly was retired from the public ladder when the rates dropped
+  // (weekly €38 / bi-weekly €40 / one-off €44). The previous Monthly
+  // rate (€52/hr) sat above one-off and inverted the "commit more, pay
+  // less" promise. Existing monthly customers keep their legacy rate
+  // off-site; nothing in the booking flow exposes a Monthly tier
+  // anymore (FrequencyId is just "once" | "biweekly" | "weekly").
 } as const;
 
 // =============================================================
@@ -66,7 +66,7 @@ export const RECURRING_RATES = {
 // =============================================================
 
 export const ONE_OFF_RATE = {
-  hourly: 58,
+  hourly: 44,
   label: "One-off",
   minimumHours: 2,
   vat: VAT_RATES.reduced,
@@ -76,13 +76,17 @@ export const ONE_OFF_RATE = {
 // Fixed-price packages — Deep Clean (inside-home, 9% BTW)
 // =============================================================
 
+// Repriced alongside the hourly rate drop (one-off 58→44, factor 44/58
+// ≈ 0.759). Old → new prices: 225→170, 295→225, 395→300, 495→375.
+// Implied effective rate: ~€56–63/hr, still a premium over the new
+// €44/hr one-off — appropriate for the deeper, more intensive work.
 export const DEEP_CLEAN_PACKAGES = [
   {
     id: "studio",
     label: "Studio",
     sizeRange: "up to 50 m² / 1 bedroom",
     estimatedHours: 3,
-    price: 225,
+    price: 170,
     vat: VAT_RATES.reduced,
   },
   {
@@ -90,7 +94,7 @@ export const DEEP_CLEAN_PACKAGES = [
     label: "Apartment",
     sizeRange: "50–80 m² / 2 bedrooms",
     estimatedHours: 4,
-    price: 295,
+    price: 225,
     vat: VAT_RATES.reduced,
   },
   {
@@ -98,7 +102,7 @@ export const DEEP_CLEAN_PACKAGES = [
     label: "Family home",
     sizeRange: "80–120 m² / 3 bedrooms",
     estimatedHours: 5,
-    price: 395,
+    price: 300,
     vat: VAT_RATES.reduced,
   },
   {
@@ -107,7 +111,7 @@ export const DEEP_CLEAN_PACKAGES = [
     sizeRange: "120 m²+ / 4+ bedrooms",
     estimatedHours: 6,
     price: null,
-    fromPrice: 495,
+    fromPrice: 375,
     customQuote: true,
     vat: VAT_RATES.reduced,
   },
@@ -117,26 +121,31 @@ export const DEEP_CLEAN_PACKAGES = [
 // Fixed-price packages — Move-In / Move-Out (inside-home, 9% BTW)
 // =============================================================
 
+// Repriced alongside the hourly rate drop (factor 44/58 ≈ 0.759).
+// Old → new: 395→300, 495→375, 625→475, 750→570. Implied effective
+// rate ~€95–100/hr — still well above one-off, which is correct: this
+// is the painkiller deposit-back service, customers tolerate the
+// premium because the alternative is losing the deposit.
 export const MOVE_PACKAGES = [
   {
     id: "studio",
     label: "Studio",
     sizeRange: "up to 50 m²",
-    price: 395,
+    price: 300,
     vat: VAT_RATES.reduced,
   },
   {
     id: "apartment",
     label: "Apartment",
     sizeRange: "50–80 m²",
-    price: 495,
+    price: 375,
     vat: VAT_RATES.reduced,
   },
   {
     id: "family",
     label: "Family home",
     sizeRange: "80–120 m²",
-    price: 625,
+    price: 475,
     vat: VAT_RATES.reduced,
   },
   {
@@ -144,7 +153,7 @@ export const MOVE_PACKAGES = [
     label: "Large home",
     sizeRange: "120 m²+",
     price: null,
-    fromPrice: 750,
+    fromPrice: 570,
     customQuote: true,
     vat: VAT_RATES.reduced,
   },
@@ -219,7 +228,7 @@ export const ADD_ON_MIN_PRICE = Math.min(...ADD_ONS.map((a) => a.price));
 
 /**
  * "Apartment" tier prices — the bundle picker on /book uses these as
- * its anchor numbers ("€295 + add-ons" for First-time reset, "€495 +
+ * its anchor numbers ("€225 + add-ons" for First-time reset, "€375 +
  * add-ons" for Move-out package). Cast through `as number` because the
  * `as const` array union widens to `number | null` thanks to the
  * "Large home" custom-quote tier.

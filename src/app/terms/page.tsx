@@ -2,24 +2,24 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Terms & Conditions — ExpatCleaners",
+  title: "Algemene Voorwaarden — ExpatCleaners",
   description:
-    "Terms and conditions for ExpatCleaners cleaning services in Amsterdam — bookings, pricing, cancellation, complaints, liability, governing law.",
+    "Algemene Voorwaarden van Expat Cleaning Amsterdam — boekingen, tarieven, annulering, klachten, aansprakelijkheid, toepasselijk recht. General Terms (NL/EN) for ExpatCleaners cleaning services in Amsterdam.",
   // Legal pages don't need to be social-shared. Suppress OG image so a
   // share preview falls back to the site default rather than carrying
   // the home OG photo against legal copy.
   openGraph: {
-    title: "Terms & Conditions — ExpatCleaners",
+    title: "Algemene Voorwaarden — ExpatCleaners",
     description:
-      "Terms and conditions for ExpatCleaners cleaning services in Amsterdam.",
+      "Algemene Voorwaarden van Expat Cleaning Amsterdam (NL/EN).",
   },
 };
 
-// Small server-component section helper. Each section renders its
-// numbered heading and a vertical-rhythm container for paragraphs and
-// lists. Kept in this file (not extracted) because /privacy uses an
-// identical helper of its own — copying once is cheaper than a shared
-// component file with one consumer per page.
+// Small server-component section helper. Each article renders its
+// bilingual heading (NL — EN) and a vertical-rhythm container for the
+// paired Dutch + English paragraphs. Kept in this file (not extracted)
+// because /privacy uses an identical helper of its own — copying once
+// is cheaper than a shared component file with one consumer per page.
 function Section({
   title,
   children,
@@ -42,363 +42,448 @@ function Section({
   );
 }
 
+// Two helpers to mark paragraph language for accessibility and to
+// visually distinguish the supportive English text from the leading
+// Dutch text. Per the opening clause, the Dutch version prevails in
+// any discrepancy.
+function NL({ children }: { children: React.ReactNode }) {
+  return <p lang="nl">{children}</p>;
+}
+
+function EN({ children }: { children: React.ReactNode }) {
+  return (
+    <p lang="en" className="text-stone">
+      {children}
+    </p>
+  );
+}
+
 export default function TermsPage() {
   return (
     <main className="bg-cream">
       <article className="mx-auto max-w-3xl px-6 py-20 md:px-8 md:py-28">
         {/* Eyebrow / page intro — keep tight, then breathe before the
-            first numbered section. */}
+            first numbered article. */}
         <p className="caption">Legal</p>
         <h1
           className="mt-4 font-display text-[36px] leading-[1.05] tracking-[-0.02em] text-ink md:text-[48px]"
           style={{ fontWeight: 400 }}
         >
-          Terms &amp; Conditions
+          Algemene Voorwaarden
         </h1>
+        <p className="mt-3 font-display text-[20px] leading-[1.2] tracking-[-0.01em] text-stone md:text-[22px]">
+          General Terms &amp; Conditions
+        </p>
 
         <p className="mt-6 text-[15px] leading-[1.7] text-ink md:text-[16px]">
-          <strong>ExpatCleaners</strong> · Amsterdam, the Netherlands
+          <strong>Expat Cleaning Amsterdam</strong> · Amsterdam, the
+          Netherlands
         </p>
         <p className="mt-1 text-[14px] leading-[1.7] text-stone">
-          <strong>Effective from:</strong> 3 May 2026
-          <br />
-          <strong>Version:</strong> 1.0
+          <strong>Versie / Version:</strong> mei 2026
         </p>
 
-        <p className="mt-8 text-[15px] leading-[1.7] text-ink md:text-[16px]">
-          These Terms &amp; Conditions apply to every booking made with
-          ExpatCleaners through our website, WhatsApp, email, or any other
-          channel. By confirming a booking you agree to these terms. Please
-          read them carefully.
-        </p>
-        <p className="mt-3 text-[15px] leading-[1.7] text-ink md:text-[16px]">
-          These terms are written in English for our international clients.
-          Dutch law applies to all our agreements. A Dutch translation is
-          available on request; in the event of any discrepancy between the
-          English and Dutch versions, the Dutch version prevails.
-        </p>
+        <NL>
+          Deze Algemene Voorwaarden zijn van toepassing op alle
+          overeenkomsten waarbij Expat Cleaning Amsterdam (handelsnaam
+          van een eenmanszaak ingeschreven in het Handelsregister onder
+          nummer 94002185) schoonmaakdiensten levert aan een Klant. Bij
+          strijdigheid tussen de Nederlandse en Engelse tekst prevaleert
+          de Nederlandse tekst.
+        </NL>
+        <EN>
+          These General Terms apply to all agreements under which Expat
+          Cleaning Amsterdam (trade name of a sole proprietorship
+          registered in the Dutch Trade Register under no. 94002185)
+          provides cleaning services to a Customer. In case of
+          discrepancy between the Dutch and English text, the Dutch
+          text prevails.
+        </EN>
 
-        <Section title="1. Who we are">
-          <p>
-            ExpatCleaners is a sole proprietorship operated by Yuri Kisman,
-            registered with the Dutch Chamber of Commerce (KvK) under number
-            94002185, BTW NL005057342B81, based in Amsterdam, the
-            Netherlands.
-          </p>
-          <p>
-            Contact:{" "}
-            <a
-              href="mailto:hello@expat-cleaners.com"
-              className="link-underline text-ink"
-            >
-              hello@expat-cleaners.com
-            </a>{" "}
-            · WhatsApp{" "}
-            <a
-              href="tel:+31644683837"
-              className="link-underline text-ink"
-            >
-              +31 6 44 68 38 37
-            </a>
-          </p>
-          <p>
-            Throughout these terms, &ldquo;we&rdquo;, &ldquo;us&rdquo; and
-            &ldquo;ExpatCleaners&rdquo; refer to the business above.
-            &ldquo;You&rdquo; and &ldquo;Client&rdquo; refer to the person
-            making the booking.
-          </p>
+        <Section title="Artikel 1 — Definities / Article 1 — Definitions">
+          <NL>
+            Opdrachtgever: Expat Cleaning Amsterdam. Klant: de
+            natuurlijke of rechtspersoon met wie Opdrachtgever een
+            Overeenkomst sluit. Overeenkomst: iedere overeenkomst tussen
+            Opdrachtgever en Klant betreffende de levering van
+            schoonmaakdiensten. Diensten: alle door Opdrachtgever te
+            leveren schoonmaak- en aanverwante diensten.
+          </NL>
+          <EN>
+            Service Provider: Expat Cleaning Amsterdam. Customer: the
+            natural or legal person with whom the Service Provider
+            enters into an Agreement. Agreement: any agreement between
+            the Service Provider and the Customer for cleaning services.
+            Services: all cleaning and related services to be provided
+            by the Service Provider.
+          </EN>
         </Section>
 
-        <Section title="2. What we do">
-          <p>
-            We arrange residential and small commercial cleaning services in
-            Amsterdam. The actual cleaning is carried out either by cleaners
-            we directly engage, or by a qualified cleaning company we
-            subcontract to. In all cases ExpatCleaners is your point of
-            contact and is responsible for the result.
-          </p>
+        <Section title="Artikel 2 — Toepasselijkheid / Applicability">
+          <NL>
+            Deze voorwaarden zijn van toepassing op alle aanbiedingen,
+            offertes, opdrachten en Overeenkomsten van Opdrachtgever,
+            met uitsluiting van eventuele algemene voorwaarden van
+            Klant. Afwijkingen zijn alleen geldig indien schriftelijk
+            overeengekomen.
+          </NL>
+          <EN>
+            These terms apply to all offers, quotes, assignments and
+            Agreements of the Service Provider, to the exclusion of any
+            general terms of the Customer. Deviations are only valid
+            when agreed in writing.
+          </EN>
         </Section>
 
-        <Section title="3. Bookings">
-          <p>
-            <strong>3.1</strong> A booking becomes a binding agreement once
-            we confirm it in writing — by WhatsApp, email, or via our online
-            booking flow with payment confirmed.
-          </p>
-          <p>
-            <strong>3.2</strong> The price shown in our booking flow is an
-            estimate based on home size, number of rooms, and the services
-            you select. The final amount is calculated on the time we
-            actually work, plus any agreed add-ons.
-          </p>
-          <p>
-            <strong>3.3</strong> Before the first clean we ask you to share:
-            full address, access instructions, key arrangements, household
-            specifics (pets, allergies, fragile or valuable items), and any
-            preferences. Incomplete information may affect the result and
-            the time required.
-          </p>
+        <Section title="Artikel 3 — Totstandkoming Overeenkomst / Formation of Agreement">
+          <NL>
+            Een Overeenkomst komt tot stand wanneer Klant via WhatsApp,
+            e-mail, het boekingsformulier op de website of een ander
+            door Opdrachtgever aangewezen kanaal een boekingsbevestiging
+            ontvangt van Opdrachtgever. Aanbiedingen van Opdrachtgever
+            zijn vrijblijvend en kunnen binnen drie (3) werkdagen na
+            aanvaarding worden herroepen.
+          </NL>
+          <EN>
+            An Agreement is formed when the Customer receives a booking
+            confirmation from the Service Provider via WhatsApp, e-mail,
+            the website booking form or another channel designated by
+            the Service Provider. Offers from the Service Provider are
+            without obligation and may be revoked within three (3)
+            business days after acceptance.
+          </EN>
         </Section>
 
-        <Section title="4. Pricing and VAT">
-          <p>
-            <strong>4.1</strong> All prices on our website and in our
-            booking flow are in euros and include 21% Dutch VAT (BTW),
-            unless explicitly stated otherwise.
-          </p>
-          <p>
-            <strong>4.2</strong> Hourly rates apply to time worked at your
-            location, rounded to the nearest 15 minutes with a minimum
-            visit duration as stated for each service.
-          </p>
-          <p>
-            <strong>4.3</strong> We may adjust our rates with at least 30
-            days&rsquo; written notice. Recurring clients are not affected
-            mid-cycle by adjustments — new rates apply from the next
-            billing period after the notice.
-          </p>
-          <p>
-            <strong>4.4</strong> Optional add-ons (such as inside-oven
-            cleaning, balcony, ironing) are charged in addition to the
-            hourly rate. Add-on prices are listed in our booking flow.
-          </p>
+        <Section title="Artikel 4 — Herroepingsrecht consumenten / Right of withdrawal (consumers)">
+          <NL>
+            Een Klant die handelt als consument heeft het wettelijke
+            recht de Overeenkomst binnen veertien (14) dagen na
+            totstandkoming kosteloos te herroepen, behalve in twee
+            gevallen: (a) als de Dienst met instemming van de consument
+            volledig is uitgevoerd binnen die termijn, of (b) als de
+            consument bij het sluiten uitdrukkelijk heeft afgezien van
+            het herroepingsrecht (artikel 6:230o e.v. BW). Bij
+            boekingen die binnen veertien dagen na aanvaarding worden
+            uitgevoerd, wordt de Klant geacht uitdrukkelijk afstand te
+            doen van het herroepingsrecht.
+          </NL>
+          <EN>
+            A Customer acting as a consumer has the statutory right to
+            withdraw from the Agreement free of charge within fourteen
+            (14) days of formation, except (a) where the Service has
+            been fully performed within that period with the
+            consumer&rsquo;s consent, or (b) where the consumer has
+            expressly waived the right of withdrawal at the time of
+            conclusion (Article 6:230o et seq. Dutch Civil Code). For
+            bookings executed within fourteen days of acceptance, the
+            Customer is deemed to expressly waive the right of
+            withdrawal.
+          </EN>
         </Section>
 
-        <Section title="5. Payment">
-          <p>
-            <strong>5.1</strong> For one-off bookings, payment is made
-            online via Mollie at the time of booking, or by bank transfer
-            within 14 days after the clean if agreed in advance.
-          </p>
-          <p>
-            <strong>5.2</strong> For recurring bookings (weekly, biweekly,
-            monthly), we send an invoice after each clean or monthly,
-            payable within 14 days.
-          </p>
-          <p>
-            <strong>5.3</strong> If the actual time worked differs from the
-            estimate, we adjust the final invoice accordingly and inform
-            you before charging. We never charge more than 25% above the
-            original estimate without your explicit agreement.
-          </p>
-          <p>
-            <strong>5.4</strong> Late payments incur statutory interest
-            under Dutch law (wettelijke rente) plus collection costs in
-            accordance with the Dutch Consumer Collection Costs Act (Wet
-            incassokosten).
-          </p>
+        <Section title="Artikel 5 — Tarieven en betaling / Rates and payment">
+          <ul
+            lang="nl"
+            className="list-disc space-y-2 pl-5 marker:text-stone"
+          >
+            <li>
+              Tarieven schoonmaak particuliere woningen: € 38/uur
+              (recurring wekelijks), € 40/uur (recurring tweewekelijks),
+              € 44/uur (one-off / deep clean), allen inclusief 9% BTW.
+            </li>
+            <li>
+              Eventuele aanvullende werkzaamheden (zoals balkonschoonmaak
+              of glasbewassing) worden afzonderlijk geoffreerd onder
+              hetzelfde 9% tarief, voor zover de fiscale kwalificatie
+              als schoonmaak van een woning dat toelaat.
+            </li>
+            <li>
+              Tarieven zijn vermeld inclusief BTW tenzij anders
+              aangegeven. Tarieven kunnen jaarlijks worden aangepast;
+              aangepaste tarieven gelden voor nieuwe boekingen vanaf de
+              aanpassingsdatum.
+            </li>
+            <li>
+              Betaling per factuur binnen veertien (14) dagen of, bij
+              one-off, vooraf via Tikkie/iDEAL. Bij niet-tijdige betaling
+              is Klant van rechtswege in verzuim en is wettelijke
+              (handels)rente verschuldigd, alsmede incassokosten conform
+              de WIK / Besluit vergoeding buitengerechtelijke
+              incassokosten.
+            </li>
+          </ul>
+          <EN>
+            Pricing for residential cleaning: € 38/hour (weekly
+            recurring), € 40/hour (biweekly recurring), € 44/hour
+            (one-off / deep clean), all including 9% Dutch VAT. Any
+            additional work (e.g. balcony, window cleaning) is quoted
+            separately under the same 9% rate, to the extent its VAT
+            qualification as residential cleaning permits. Payment by
+            invoice within 14 days, or in advance for one-off jobs. Late
+            payment triggers statutory interest and collection costs.
+          </EN>
         </Section>
 
-        <Section title="6. Cancellation and rescheduling">
-          <p>
-            <strong>6.1</strong> You may cancel or reschedule a booked
-            clean free of charge up to 48 hours before the agreed start
-            time.
-          </p>
-          <p>
-            <strong>6.2</strong> Cancellation or rescheduling between 48
-            and 24 hours before the start time: 50% of the estimated price
-            is charged.
-          </p>
-          <p>
-            <strong>6.3</strong> Cancellation or rescheduling within 24
-            hours, or inability for our cleaner to access the home at the
-            agreed time: 100% of the estimated price is charged.
-          </p>
-          <p>
-            <strong>6.4</strong> Recurring bookings can be paused or
-            cancelled at any time with 14 days&rsquo; written notice
-            (WhatsApp or email). No early-termination fee applies.
-          </p>
-          <p>
-            <strong>6.5</strong> If we have to cancel — for example due to
-            cleaner illness without short-term replacement, extreme
-            weather, or other circumstances beyond our control — we inform
-            you as soon as possible and reschedule without charge.
-          </p>
+        <Section title="Artikel 6 — Annulering en wijziging / Cancellation and rescheduling">
+          <ul
+            lang="nl"
+            className="list-disc space-y-2 pl-5 marker:text-stone"
+          >
+            <li>
+              Annulering of verplaatsing van een geplande Dienst kan
+              kosteloos tot vierentwintig (24) uur vóór het afgesproken
+              tijdstip.
+            </li>
+            <li>
+              Bij annulering of verplaatsing binnen 24 uur is Klant 50%
+              van het geoffreerde bedrag verschuldigd, met een minimum
+              van € 30.
+            </li>
+            <li>
+              Bij no-show (Klant niet aanwezig, geen toegang, geen
+              instructie) op het afgesproken tijdstip is het volledige
+              bedrag verschuldigd.
+            </li>
+            <li>
+              Bij recurring abonnementen kan de Klant zonder reden de
+              overeenkomst tussentijds opzeggen met inachtneming van een
+              opzegtermijn van veertien (14) dagen.
+            </li>
+          </ul>
+          <EN>
+            Cancellation or rescheduling free of charge up to 24 hours
+            before the scheduled time. Within 24 hours: 50% of the
+            quoted amount, minimum € 30. No-show: full amount due.
+            Recurring subscriptions can be terminated by the Customer
+            with 14 days&rsquo; notice.
+          </EN>
         </Section>
 
-        <Section title="7. Withdrawal right (statutory cooling-off period)">
-          <p>
-            <strong>7.1</strong> Under Dutch and EU consumer law, consumers
-            have a 14-day right of withdrawal for services booked at a
-            distance. By requesting that the cleaning is carried out within
-            14 days of booking, you expressly agree that you waive this
-            right of withdrawal once the service has been fully performed
-            (Article 6:230p sub d Dutch Civil Code).
-          </p>
-          <p>
-            <strong>7.2</strong> If the cleaning has not yet started, you
-            may withdraw within 14 days at no cost. If the cleaning has
-            started but is not complete, you owe a proportional amount for
-            the work already done.
-          </p>
+        <Section title="Artikel 7 — Uitvoering van de Dienst / Execution">
+          <NL>
+            Opdrachtgever spant zich in om de Dienst naar beste vermogen
+            en met inachtneming van de in de schoonmaakbranche
+            gebruikelijke zorgvuldigheid uit te voeren. Opdrachtgever
+            schakelt daarvoor eigen medewerkers in, of een
+            gekwalificeerde onderaannemer waarmee Opdrachtgever een
+            schriftelijke overeenkomst heeft gesloten.
+          </NL>
+          <NL>
+            Klant zorgt voor toegang tot de woning op het afgesproken
+            tijdstip, een veilige werkomgeving, stromend water, en
+            elektriciteit. Indien specifieke schoonmaakmiddelen of
+            -methoden zijn afgesproken (bijvoorbeeld bio-cleaning), zal
+            Opdrachtgever deze gebruiken; in andere gevallen kiest
+            Opdrachtgever in redelijkheid.
+          </NL>
+          <EN>
+            The Service Provider performs the Service with reasonable
+            care and customary diligence, using its own personnel or a
+            contractually engaged subcontractor. The Customer provides
+            access at the agreed time, a safe working environment,
+            running water and electricity. Agreed materials (e.g.
+            bio-cleaning) will be used; otherwise the Service Provider
+            chooses reasonably.
+          </EN>
         </Section>
 
-        <Section title="8. Performance and quality">
-          <p>
-            <strong>8.1</strong> We commit to delivering high-quality
-            cleaning, on time, by trained cleaners using safe, effective
-            products.
-          </p>
-          <p>
-            <strong>8.2</strong> Where requested, we use organic,
-            plant-derived cleaning products. If you have specific allergies
-            or product preferences, please tell us in advance.
-          </p>
-          <p>
-            <strong>8.3</strong> We may rotate cleaners when operationally
-            necessary (illness, holidays, scheduling). Recurring clients
-            receive a regular cleaner wherever practical.
-          </p>
-          <p>
-            <strong>8.4</strong> You agree to provide a safe working
-            environment: working ventilation, water and electricity, no
-            aggressive pets unattended in the working area, and access to
-            the rooms to be cleaned.
-          </p>
+        <Section title="Artikel 8 — Aansprakelijkheid / Liability">
+          <ul
+            lang="nl"
+            className="list-disc space-y-2 pl-5 marker:text-stone"
+          >
+            <li>
+              Opdrachtgever is uitsluitend aansprakelijk voor directe
+              schade die het rechtstreekse gevolg is van een
+              toerekenbare tekortkoming bij de uitvoering van een
+              Dienst.
+            </li>
+            <li>
+              De aansprakelijkheid van Opdrachtgever is per gebeurtenis
+              of samenhangende gebeurtenissen beperkt tot het bedrag dat
+              door de aansprakelijkheidsverzekering van Opdrachtgever
+              ter zake wordt uitgekeerd. Indien om welke reden dan ook
+              geen uitkering plaatsvindt, is de aansprakelijkheid
+              beperkt tot vijf (5) maal het factuurbedrag van de Dienst
+              waarop de aansprakelijkheid betrekking heeft, met een
+              absoluut maximum van € 5.000.
+            </li>
+            <li>
+              Indirecte schade, gevolgschade, gederfde winst,
+              vertragingsschade, immateriële schade of schade door
+              verlies van zaken die Klant op een zichtbare plaats heeft
+              achtergelaten (bijvoorbeeld contant geld, sieraden in het
+              zicht), is uitgesloten.
+            </li>
+            <li>
+              Iedere aanspraak op vergoeding van schade vervalt indien
+              Klant deze niet binnen achtenveertig (48) uur na afloop
+              van de Dienst schriftelijk (e-mail of WhatsApp aan het
+              door Opdrachtgever opgegeven adres) heeft gemeld, voorzien
+              van een redelijke beschrijving en, waar mogelijk,
+              fotomateriaal.
+            </li>
+            <li>
+              De beperkingen in dit artikel gelden niet bij opzet of
+              bewuste roekeloosheid van Opdrachtgever of haar
+              leidinggevende ondergeschikten.
+            </li>
+          </ul>
+          <EN>
+            Liability is limited to (i) the amount paid out by the
+            Service Provider&rsquo;s liability insurance, or (ii) if no
+            payout, five times the invoice amount with an absolute
+            maximum of € 5,000. Indirect, consequential and immaterial
+            damage, lost profit, and loss of valuables left in plain
+            sight is excluded. Claims must be reported in writing
+            within 48 hours.
+          </EN>
         </Section>
 
-        <Section title="9. Complaints">
-          <p>
-            <strong>9.1</strong> If you are not satisfied, please tell us
-            within 24 hours after the clean, by WhatsApp or email, with a
-            brief description and (where possible) photographs.
-          </p>
-          <p>
-            <strong>9.2</strong> We will offer a free re-clean of the
-            affected areas within 48 hours of a justified complaint. While
-            we are willing and able to re-clean, no other right to refund
-            or discount applies.
-          </p>
-          <p>
-            <strong>9.3</strong> Complaints made later than 24 hours are
-            not accepted, except for damage that could not reasonably have
-            been discovered earlier (such as concealed water leaks).
-          </p>
+        <Section title="Artikel 9 — Klachten en herstel / Complaints and remediation">
+          <NL>
+            Klachten over de Dienst worden binnen vierentwintig (24) uur
+            na uitvoering schriftelijk gemeld via WhatsApp of e-mail.
+            Bij een gegronde klacht zal Opdrachtgever binnen
+            tweeënzeventig (72) uur kosteloos hercleaning aanbieden, dan
+            wel een redelijke creditering verstrekken, naar keuze van
+            Opdrachtgever.
+          </NL>
+          <EN>
+            Complaints about the Service must be reported in writing via
+            WhatsApp or e-mail within 24 hours of execution. Where the
+            complaint is justified, the Service Provider will offer free
+            re-cleaning within 72 hours or a reasonable credit, at the
+            Service Provider&rsquo;s choice.
+          </EN>
         </Section>
 
-        <Section title="10. Liability">
-          <p>
-            <strong>10.1</strong> We are liable only for direct damage
-            caused by an attributable failure on our part.
-          </p>
-          <p>
-            <strong>10.2</strong> Our liability in any case is limited to
-            the amount paid out in the relevant case under our business
-            liability insurance (AVB), plus the deductible. If for any
-            reason no insurance payout is made, our liability is limited to
-            the invoiced amount of the three months preceding the incident,
-            with an absolute maximum of € 2,500.
-          </p>
-          <p>
-            <strong>10.3</strong> We are not liable for: (a) damage to
-            fragile, antique, or particularly valuable items not disclosed
-            to us in writing in advance; (b) damage caused by defects in
-            the home or its installations (e.g. failing taps, weak shelves,
-            loose tiles); (c) indirect or consequential damage, lost
-            profit, or non-material damage; (d) any damage where you have
-            failed to provide a safe working environment.
-          </p>
-          <p>
-            <strong>10.4</strong> Please disclose, before the clean, any
-            items requiring special care, and store irreplaceable valuables
-            securely.
-          </p>
-        </Section>
-
-        <Section title="11. Keys and access">
-          <p>
-            <strong>11.1</strong> Where you provide us with keys, we store
-            them numbered and separately from address data.
-          </p>
-          <p>
-            <strong>11.2</strong> We are not liable for the loss or damage
-            of keys, except in cases of intent or gross negligence on our
-            part.
-          </p>
-          <p>
-            <strong>11.3</strong> You are responsible for ensuring access
-            at the agreed time. If access is not possible, the booking is
-            treated under article 6.3.
-          </p>
-        </Section>
-
-        <Section title="12. Confidentiality">
-          <p>
-            Our cleaners, employees and subcontractors are bound to strict
-            confidentiality regarding everything they observe in and around
-            your home. This obligation continues after the end of our
-            agreement.
-          </p>
-        </Section>
-
-        <Section title="13. Privacy">
-          <p>
-            Personal data is processed in accordance with the GDPR and our
-            Privacy Statement, available at{" "}
+        <Section title="Artikel 10 — Privacy / Privacy">
+          <NL>
+            Opdrachtgever verwerkt persoonsgegevens conform de Algemene
+            Verordening Gegevensbescherming (AVG). Voor details verwijst
+            Opdrachtgever naar haar{" "}
             <Link href="/privacy" className="link-underline text-ink">
-              expat-cleaners.com/privacy
-            </Link>
-            .
-          </p>
+              privacyverklaring
+            </Link>{" "}
+            op de website. Persoonsgegevens worden uitsluitend gebruikt
+            voor uitvoering van de Overeenkomst, klantadministratie,
+            betaling, en — uitsluitend na toestemming — voor
+            marketingdoeleinden.
+          </NL>
+          <EN>
+            The Service Provider processes personal data in accordance
+            with the GDPR. For details, see the{" "}
+            <Link href="/privacy" className="link-underline text-stone">
+              privacy statement
+            </Link>{" "}
+            on the website. Personal data is used solely for performance
+            of the Agreement, customer administration, payment, and —
+            only with consent — for marketing.
+          </EN>
         </Section>
 
-        <Section title="14. Force majeure">
-          <p>
-            We are not liable for failure to perform when prevented by
-            force majeure, including without limitation: cleaner illness
-            without short-term replacement, extreme weather, public health
-            emergencies, transport disruption, or government measures. In
-            such cases we reschedule at the earliest reasonable
-            opportunity, at no extra charge.
-          </p>
+        <Section title="Artikel 11 — Toegang tot de woning / Access to the property">
+          <NL>
+            Indien Klant Opdrachtgever sleutels of toegangscodes ter
+            beschikking stelt, gaat dat onder de uitdrukkelijke
+            voorwaarde dat Opdrachtgever deze zal bewaren in een
+            afgesloten ruimte zonder vermelding van het adres en bij
+            beëindiging van de Overeenkomst zonder uitstel zal
+            retourneren.
+          </NL>
+          <NL>
+            Bij verlies van een door Klant ter beschikking gestelde
+            sleutel is de aansprakelijkheid van Opdrachtgever beperkt
+            tot de kosten van vervanging van de sleutel en, indien
+            redelijkerwijs noodzakelijk, het vervangen van één
+            cilinderslot, met een absoluut maximum van € 250.
+          </NL>
+          <EN>
+            Keys and access codes are stored securely without address
+            reference and returned promptly upon termination. Liability
+            for lost keys is limited to replacement cost and, if
+            reasonably necessary, replacement of one cylinder lock, max
+            € 250.
+          </EN>
         </Section>
 
-        <Section title="15. Changes to these terms">
-          <p>
-            We may update these terms from time to time. The version
-            effective on the date you make a booking applies to that
-            booking. Significant changes to recurring agreements will be
-            communicated to you with at least 30 days&rsquo; notice.
-          </p>
+        <Section title="Artikel 12 — Overmacht / Force majeure">
+          <NL>
+            Indien Opdrachtgever door overmacht (waaronder ziekte van
+            personeel zonder vervanging op redelijke termijn, extreme
+            weersomstandigheden, brand, overstroming, pandemie,
+            overheidsmaatregelen) een Dienst niet kan uitvoeren, wordt
+            de Dienst kosteloos verplaatst naar het eerstvolgende
+            beschikbare moment. Annulering door Klant in dat geval geeft
+            geen recht op schadevergoeding.
+          </NL>
         </Section>
 
-        <Section title="16. Governing law and disputes">
-          <p>
-            <strong>16.1</strong> Dutch law applies exclusively to all our
-            agreements.
-          </p>
-          <p>
-            <strong>16.2</strong> Disputes that cannot be resolved between
-            us are submitted exclusively to the competent court in
-            Amsterdam.
-          </p>
-          <p>
-            <strong>16.3</strong> Consumers have the right to refer
-            cross-border online disputes to the European Commission&rsquo;s
-            Online Dispute Resolution platform:{" "}
-            <a
-              href="https://ec.europa.eu/consumers/odr"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="link-underline text-ink"
-            >
-              ec.europa.eu/consumers/odr
-            </a>
-            .
-          </p>
+        <Section title="Artikel 13 — Geen rechtstreekse inhuur / No direct hire">
+          <NL>
+            Klant zal gedurende de looptijd van een Overeenkomst en
+            twaalf (12) maanden na het einde daarvan, niet rechtstreeks
+            of via een derde, schoonmaakdiensten afnemen van een
+            medewerker of onderaannemer van Opdrachtgever met wie Klant
+            via Opdrachtgever in contact is gekomen, zonder voorafgaande
+            schriftelijke toestemming van Opdrachtgever. Bij overtreding
+            is Klant aan Opdrachtgever een direct opeisbare boete van
+            € 1.500 verschuldigd, onverminderd het recht van
+            Opdrachtgever op aanvullende schadevergoeding.
+          </NL>
+          <EN>
+            The Customer will not, directly or indirectly, engage
+            cleaning services from a Service Provider employee or
+            subcontractor introduced via the Service Provider, during
+            the Agreement and for 12 months after, without prior written
+            consent. Breach: € 1,500 contractual penalty plus damages.
+          </EN>
+        </Section>
+
+        <Section title="Artikel 14 — Wijziging voorwaarden / Amendment of terms">
+          <NL>
+            Opdrachtgever is gerechtigd deze voorwaarden te wijzigen.
+            Voor lopende Overeenkomsten worden wijzigingen ten minste
+            dertig (30) dagen vóór inwerkingtreding schriftelijk
+            aangekondigd; Klant heeft het recht de Overeenkomst tegen
+            die datum kosteloos te beëindigen.
+          </NL>
+        </Section>
+
+        <Section title="Artikel 15 — Toepasselijk recht en geschillen / Governing law and disputes">
+          <NL>
+            Op deze Overeenkomst is uitsluitend Nederlands recht van
+            toepassing. Geschillen worden voorgelegd aan de bevoegde
+            rechter van de Rechtbank Amsterdam, onverminderd de
+            mogelijkheid voor een Klant-consument om binnen één maand
+            nadat Opdrachtgever schriftelijk een beroep op dit beding
+            heeft gedaan, te kiezen voor de wettelijk bevoegde rechter.
+          </NL>
+          <EN>
+            This Agreement is governed by Dutch law. Disputes are
+            submitted to the Amsterdam District Court, without prejudice
+            to a consumer&rsquo;s right to opt for the legally competent
+            court within one month after the Service Provider invokes
+            this clause.
+          </EN>
         </Section>
 
         <p className="mt-12 text-[15px] leading-[1.7] text-ink md:text-[16px]">
-          <strong>Questions about these terms?</strong> Contact us at{" "}
+          Vastgesteld te Amsterdam, mei 2026. — Yuri Kisman, handelend
+          onder de naam Expat Cleaning Amsterdam.
+        </p>
+
+        <p className="mt-8 text-[15px] leading-[1.7] text-ink md:text-[16px]">
+          <strong>Vragen over deze voorwaarden? / Questions?</strong>{" "}
+          Contact{" "}
           <a
             href="mailto:hello@expat-cleaners.com"
             className="link-underline text-ink"
           >
             hello@expat-cleaners.com
           </a>{" "}
-          or via WhatsApp{" "}
+          · WhatsApp{" "}
           <a href="tel:+31644683837" className="link-underline text-ink">
             +31 6 44 68 38 37
           </a>
@@ -408,7 +493,7 @@ export default function TermsPage() {
         {/* Spec-required footer line — single source of truth across
             both legal pages. Keep wording identical to /privacy. */}
         <p className="mt-12 border-t border-stone/20 pt-6 text-[13px] leading-[1.7] text-stone">
-          Last updated: 3 May 2026. For questions, contact{" "}
+          Last updated: 20 May 2026. For questions, contact{" "}
           <a
             href="mailto:hello@expat-cleaners.com"
             className="underline-offset-4 hover:text-ink hover:underline"

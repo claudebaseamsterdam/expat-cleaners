@@ -311,13 +311,13 @@ test("selectPackageId: invalid sqm (zero / undefined) falls back to bedrooms", (
 test("selectDeepCleanPackage: returns the live package object with price", () => {
   const studio = selectDeepCleanPackage(30, 1);
   assert.equal(studio.id, "studio");
-  assert.equal(studio.price, 225);
+  assert.equal(studio.price, 170);
   const apartment = selectDeepCleanPackage(65, 2);
   assert.equal(apartment.id, "apartment");
-  assert.equal(apartment.price, 295);
+  assert.equal(apartment.price, 225);
   const family = selectDeepCleanPackage(100, 3);
   assert.equal(family.id, "family");
-  assert.equal(family.price, 395);
+  assert.equal(family.price, 300);
 });
 
 test("selectDeepCleanPackage: large tier returns customQuote payload", () => {
@@ -326,19 +326,19 @@ test("selectDeepCleanPackage: large tier returns customQuote payload", () => {
   assert.equal(large.price, null);
   assert.equal(large.customQuote, true);
   // fromPrice carries the WhatsApp anchor for the custom-quote CTA.
-  assert.equal(large.fromPrice, 495);
+  assert.equal(large.fromPrice, 375);
 });
 
 test("selectMovePackage: returns the live package object with price", () => {
   const studio = selectMovePackage(40, 1);
   assert.equal(studio.id, "studio");
-  assert.equal(studio.price, 395);
+  assert.equal(studio.price, 300);
   const apartment = selectMovePackage(70, 2);
   assert.equal(apartment.id, "apartment");
-  assert.equal(apartment.price, 495);
+  assert.equal(apartment.price, 375);
   const family = selectMovePackage(100, 3);
   assert.equal(family.id, "family");
-  assert.equal(family.price, 625);
+  assert.equal(family.price, 475);
 });
 
 test("selectMovePackage: large tier returns customQuote payload", () => {
@@ -346,5 +346,5 @@ test("selectMovePackage: large tier returns customQuote payload", () => {
   assert.equal(large.id, "large");
   assert.equal(large.price, null);
   assert.equal(large.customQuote, true);
-  assert.equal(large.fromPrice, 750);
+  assert.equal(large.fromPrice, 570);
 });

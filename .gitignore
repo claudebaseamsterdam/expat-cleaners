@@ -43,3 +43,11 @@ next-env.d.ts
 
 # Cowork session-local settings
 .claude/settings.local.json
+
+# Local environment files - never commit
+.env
+.env.local
+.env.*.local
+
+# Build artifacts - never commit
+graphify-out/

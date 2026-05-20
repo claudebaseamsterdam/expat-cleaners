@@ -31,7 +31,7 @@ type Card = {
 // All numeric prices come from lib/pricing.ts. Phase 3 copy: recurring
 // shows the entry-tier hourly rate, one-off shows the one-off hourly +
 // 2-hour minimum, deep clean now shows the from-price for the cheapest
-// fixed package (studio = €225) instead of an hourly figure.
+// fixed package (studio = €170) instead of an hourly figure.
 const CARDS: Card[] = [
   {
     id: "recurring",
