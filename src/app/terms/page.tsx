@@ -4,14 +4,13 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Algemene Voorwaarden — ExpatCleaners",
   description:
-    "Algemene Voorwaarden van Expat Cleaning Amsterdam — boekingen, tarieven, annulering, klachten, aansprakelijkheid, toepasselijk recht. General Terms (NL/EN) for ExpatCleaners cleaning services in Amsterdam.",
+    "Algemene Voorwaarden van Expatcleaners (KvK 94002185) — boekingen, tarieven, annulering, klachten, aansprakelijkheid, toepasselijk recht. General Terms (NL/EN) for ExpatCleaners cleaning services in Amsterdam.",
   // Legal pages don't need to be social-shared. Suppress OG image so a
   // share preview falls back to the site default rather than carrying
   // the home OG photo against legal copy.
   openGraph: {
     title: "Algemene Voorwaarden — ExpatCleaners",
-    description:
-      "Algemene Voorwaarden van Expat Cleaning Amsterdam (NL/EN).",
+    description: "Algemene Voorwaarden van Expatcleaners (NL/EN).",
   },
 };
 
@@ -76,8 +75,7 @@ export default function TermsPage() {
         </p>
 
         <p className="mt-6 text-[15px] leading-[1.7] text-ink md:text-[16px]">
-          <strong>Expat Cleaning Amsterdam</strong> · Amsterdam, the
-          Netherlands
+          <strong>Expatcleaners</strong> · Amsterdam, the Netherlands
         </p>
         <p className="mt-1 text-[14px] leading-[1.7] text-stone">
           <strong>Versie / Version:</strong> mei 2026
@@ -85,37 +83,43 @@ export default function TermsPage() {
 
         <NL>
           Deze Algemene Voorwaarden zijn van toepassing op alle
-          overeenkomsten waarbij Expat Cleaning Amsterdam (handelsnaam
-          van een eenmanszaak ingeschreven in het Handelsregister onder
-          nummer 94002185) schoonmaakdiensten levert aan een Klant. Bij
-          strijdigheid tussen de Nederlandse en Engelse tekst prevaleert
-          de Nederlandse tekst.
+          overeenkomsten waarbij Expatcleaners, geregistreerde
+          handelsnaam van de eenmanszaak van Yuri Kisman ingeschreven
+          in het Handelsregister van de Kamer van Koophandel onder
+          nummer 94002185 (mede gevoerd onder de marketingnaam
+          &ldquo;Expat Cleaning Amsterdam&rdquo;), schoonmaakdiensten
+          levert aan een Klant. Bij strijdigheid tussen de Nederlandse
+          en Engelse tekst prevaleert de Nederlandse tekst.
         </NL>
         <EN>
-          These General Terms apply to all agreements under which Expat
-          Cleaning Amsterdam (trade name of a sole proprietorship
-          registered in the Dutch Trade Register under no. 94002185)
-          provides cleaning services to a Customer. In case of
-          discrepancy between the Dutch and English text, the Dutch
-          text prevails.
+          These General Terms apply to all agreements under which
+          Expatcleaners, the registered trade name of the sole
+          proprietorship of Yuri Kisman registered with the Dutch Trade
+          Register under no. 94002185 (also marketed as &ldquo;Expat
+          Cleaning Amsterdam&rdquo;), provides cleaning services to a
+          Customer. In case of discrepancy between the Dutch and English
+          text, the Dutch text prevails.
         </EN>
 
         <Section title="Artikel 1 — Definities / Article 1 — Definitions">
           <NL>
-            Opdrachtgever: Expat Cleaning Amsterdam. Klant: de
-            natuurlijke of rechtspersoon met wie Opdrachtgever een
-            Overeenkomst sluit. Overeenkomst: iedere overeenkomst tussen
-            Opdrachtgever en Klant betreffende de levering van
-            schoonmaakdiensten. Diensten: alle door Opdrachtgever te
-            leveren schoonmaak- en aanverwante diensten.
+            Opdrachtgever: Expatcleaners (handelsnaam, KvK 94002185),
+            hierna ook aangeduid met de marketingnaam Expat Cleaning
+            Amsterdam. Klant: de natuurlijke of rechtspersoon met wie
+            Opdrachtgever een Overeenkomst sluit. Overeenkomst: iedere
+            overeenkomst tussen Opdrachtgever en Klant betreffende de
+            levering van schoonmaakdiensten. Diensten: alle door
+            Opdrachtgever te leveren schoonmaak- en aanverwante diensten.
           </NL>
           <EN>
-            Service Provider: Expat Cleaning Amsterdam. Customer: the
-            natural or legal person with whom the Service Provider
-            enters into an Agreement. Agreement: any agreement between
-            the Service Provider and the Customer for cleaning services.
-            Services: all cleaning and related services to be provided
-            by the Service Provider.
+            Service Provider: Expatcleaners (trade name, Dutch Trade
+            Register no. 94002185), also referred to by the marketing
+            name Expat Cleaning Amsterdam. Customer: the natural or
+            legal person with whom the Service Provider enters into an
+            Agreement. Agreement: any agreement between the Service
+            Provider and the Customer for cleaning services. Services:
+            all cleaning and related services to be provided by the
+            Service Provider.
           </EN>
         </Section>
 
@@ -287,10 +291,10 @@ export default function TermsPage() {
           </EN>
         </Section>
 
-        <Section title="Artikel 8 — Aansprakelijkheid / Liability">
-          <ul
+        <Section title="Artikel 8 — Aansprakelijkheid en verzekering / Liability and insurance">
+          <ol
             lang="nl"
-            className="list-disc space-y-2 pl-5 marker:text-stone"
+            className="list-decimal space-y-3 pl-5 marker:text-stone"
           >
             <li>
               Opdrachtgever is uitsluitend aansprakelijk voor directe
@@ -299,44 +303,125 @@ export default function TermsPage() {
               Dienst.
             </li>
             <li>
-              De aansprakelijkheid van Opdrachtgever is per gebeurtenis
-              of samenhangende gebeurtenissen beperkt tot het bedrag dat
-              door de aansprakelijkheidsverzekering van Opdrachtgever
-              ter zake wordt uitgekeerd. Indien om welke reden dan ook
-              geen uitkering plaatsvindt, is de aansprakelijkheid
-              beperkt tot vijf (5) maal het factuurbedrag van de Dienst
-              waarop de aansprakelijkheid betrekking heeft, met een
-              absoluut maximum van € 5.000.
+              Opdrachtgever heeft ten behoeve van haar werkzaamheden een
+              bedrijfsaansprakelijkheidsverzekering (AVB) afgesloten bij
+              Insify B.V., handelend als gevolmachtigd agent namens
+              Axeria IARD, onder polisnummer PNC-306260. De polis biedt
+              dekking tot € 2.500.000 per aanspraak en € 5.000.000 per
+              verzekeringsjaar, met inbegrip van een opzicht-dekking
+              voor schade aan zaken die in behandeling, bewerking of
+              verwerking zijn genomen tot € 500.000 per aanspraak en
+              € 1.000.000 per verzekeringsjaar. Op de polis is een
+              eigen risico van € 500 per aanspraak van toepassing.
             </li>
             <li>
-              Indirecte schade, gevolgschade, gederfde winst,
-              vertragingsschade, immateriële schade of schade door
-              verlies van zaken die Klant op een zichtbare plaats heeft
-              achtergelaten (bijvoorbeeld contant geld, sieraden in het
-              zicht), is uitgesloten.
+              De aansprakelijkheid van Opdrachtgever is per gebeurtenis
+              of reeks van samenhangende gebeurtenissen beperkt tot het
+              bedrag dat krachtens de in lid 2 genoemde
+              AVB-verzekering ter zake wordt uitgekeerd, verhoogd met
+              het toepasselijke eigen risico van Opdrachtgever. Indien
+              om welke reden dan ook geen uitkering uit hoofde van die
+              verzekering plaatsvindt, is de aansprakelijkheid beperkt
+              tot vijf (5) maal het factuurbedrag van de Dienst waarop
+              de aansprakelijkheid betrekking heeft, met een absoluut
+              maximum van € 5.000.
+            </li>
+            <li>
+              Uitgesloten van aansprakelijkheid is, in overeenstemming
+              met de polisvoorwaarden van de AVB-verzekering en/of in
+              aanvulling daarop:
+              <ul className="mt-2 list-[lower-alpha] space-y-2 pl-5 marker:text-stone">
+                <li>
+                  schade aan kunstwerken, antiek, verzamelobjecten,
+                  unica en zaken met een uitzonderlijke emotionele of
+                  geldelijke waarde, voor zover deze niet vóór aanvang
+                  van de Dienst uitdrukkelijk schriftelijk aan
+                  Opdrachtgever zijn gemeld én Opdrachtgever het
+                  uitvoeren van de Dienst in aanwezigheid van deze
+                  zaken schriftelijk heeft bevestigd;
+                </li>
+                <li>
+                  verlies van of schade aan contant geld, sieraden,
+                  betaalpassen, waardepapieren en andere kostbaarheden
+                  die zich op een redelijkerwijs zichtbare plaats
+                  bevinden ten tijde van de Dienst;
+                </li>
+                <li>
+                  indirecte schade, gevolgschade, gederfde winst,
+                  gederfde inkomsten, vertragingsschade en immateriële
+                  schade;
+                </li>
+                <li>
+                  schade veroorzaakt met of door een motorrijtuig in de
+                  zin van de Wet aansprakelijkheidsverzekering
+                  motorrijtuigen;
+                </li>
+                <li>
+                  schade aan zaken die in industriële gebouwen,
+                  riolen, tanks of leidingen zijn ontstaan;
+                  schoonmaakwerk in dergelijke ruimten valt buiten het
+                  aanbod van Opdrachtgever;
+                </li>
+                <li>
+                  schade waarvan de oorzaak ligt buiten de uitvoering
+                  van de Dienst, dan wel die geen rechtstreeks gevolg
+                  is van de werkzaamheden van Opdrachtgever of haar
+                  Personeel.
+                </li>
+              </ul>
+            </li>
+            <li>
+              Het dekkingsgebied van de AVB-verzekering omvat de
+              Europese Unie, IJsland, Liechtenstein, Noorwegen,
+              Zwitserland en het Verenigd Koninkrijk. Aanspraken die in
+              de Verenigde Staten of Canada worden ingesteld of die
+              zijn gebaseerd op het recht van de Verenigde Staten of
+              Canada zijn niet verzekerd en daarmee uitgesloten van de
+              aansprakelijkheid van Opdrachtgever.
             </li>
             <li>
               Iedere aanspraak op vergoeding van schade vervalt indien
               Klant deze niet binnen achtenveertig (48) uur na afloop
               van de Dienst schriftelijk (e-mail of WhatsApp aan het
-              door Opdrachtgever opgegeven adres) heeft gemeld, voorzien
-              van een redelijke beschrijving en, waar mogelijk,
-              fotomateriaal.
+              door Opdrachtgever opgegeven adres) heeft gemeld,
+              voorzien van een redelijke beschrijving en, waar
+              mogelijk, fotomateriaal en bewijs van eigendom en waarde.
+              In geval van letselschade is onmiddellijke melding
+              vereist.
+            </li>
+            <li>
+              Opdrachtgever zal een gemelde schade onverwijld bij haar
+              verzekeraar Insify melden conform de polisvoorwaarden.
+              Klant verleent op eerste verzoek volledige medewerking
+              aan de schadebehandeling, inclusief inspectie ter plaatse
+              door een door de verzekeraar aangewezen expert.
             </li>
             <li>
               De beperkingen in dit artikel gelden niet bij opzet of
               bewuste roekeloosheid van Opdrachtgever of haar
-              leidinggevende ondergeschikten.
+              leidinggevenden, en niet voor zover dwingend Nederlands
+              consumentenrecht zich daartegen verzet.
             </li>
-          </ul>
+          </ol>
           <EN>
-            Liability is limited to (i) the amount paid out by the
-            Service Provider&rsquo;s liability insurance, or (ii) if no
-            payout, five times the invoice amount with an absolute
-            maximum of € 5,000. Indirect, consequential and immaterial
-            damage, lost profit, and loss of valuables left in plain
-            sight is excluded. Claims must be reported in writing
-            within 48 hours.
+            The Service Provider carries business liability insurance
+            (AVB) with Insify B.V., on behalf of Axeria IARD, policy no.
+            PNC-306260, covering up to € 2,500,000 per claim and
+            € 5,000,000 per insurance year, including an &ldquo;opzicht&rdquo;
+            cover of € 500,000 per claim for damage to items handled
+            during cleaning. Liability is limited to the actual insurance
+            payout (plus the € 500 deductible) or, if no payout, to 5×
+            the invoice amount with an absolute maximum of € 5,000. The
+            following are excluded: damage to art, antiques,
+            collectibles or items of exceptional value not disclosed in
+            writing before the Service; loss of cash, jewelry, payment
+            cards and valuables left in plain sight; indirect,
+            consequential and immaterial damage; motor-vehicle damage;
+            industrial cleaning damage; and claims under US or Canadian
+            law. Claims must be reported in writing within 48 hours
+            (letsel: immediately) with reasonable proof of ownership and
+            value. The limitations do not apply in case of intent or
+            wilful recklessness.
           </EN>
         </Section>
 
@@ -471,7 +556,9 @@ export default function TermsPage() {
 
         <p className="mt-12 text-[15px] leading-[1.7] text-ink md:text-[16px]">
           Vastgesteld te Amsterdam, mei 2026. — Yuri Kisman, handelend
-          onder de naam Expat Cleaning Amsterdam.
+          onder de geregistreerde handelsnaam Expatcleaners (KvK
+          94002185), mede gevoerd onder de marketingnaam Expat Cleaning
+          Amsterdam.
         </p>
 
         <p className="mt-8 text-[15px] leading-[1.7] text-ink md:text-[16px]">
